@@ -10,12 +10,13 @@
 
 import csv
 
-# Open the PEWS .csv file
-with open('me_PEWS_file.csv') as PEWS_file:
+# Open the PEWS .csv file: replace 'my_PEWS_file.csv' with correct file path.
+with open('my_PEWS_file.csv') as PEWS_file:
 
     # read the PEWS .csv file
     PEWS_raw_data = csv.reader(PEWS_file)
     for row in PEWS_raw_data:
         print(row)
 
+# create a DataFrame form the PEWS data
 
