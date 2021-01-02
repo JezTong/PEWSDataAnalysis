@@ -6,9 +6,13 @@
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
+                    csv, Numpy, Pandas, Requests
 """
 
 import csv
+import numpy as np
+import pandas as pd
+import requests
 
 # Open the PEWS .csv file: replace 'my_PEWS_file.csv' with correct file path.
 with open('my_PEWS_file.csv') as PEWS_file:
