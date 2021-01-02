@@ -8,3 +8,14 @@
     DEPENDENCIES:  This program requires the following libraries:
 """
 
+import csv
+
+# Open the PEWS .csv file
+with open('me_PEWS_file.csv') as PEWS_file:
+
+    # read the PEWS .csv file
+    PEWS_raw_data = csv.reader(PEWS_file)
+    for row in PEWS_raw_data:
+        print(row)
+
+
