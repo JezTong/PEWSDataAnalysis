@@ -9,6 +9,7 @@
                     csv, Numpy, Pandas, Requests
 """
 
+# Import Python Modules
 import csv
 import numpy as np
 import pandas as pd
@@ -22,5 +23,7 @@ with open('my_PEWS_file.csv') as PEWS_file:
     for row in PEWS_raw_data:
         print(row)
 
-# create a DataFrame form the PEWS data
-
+    # create a DataFrame form the PEWS data
+    PEWS_dataframe = pd.read_csv(PEWS_file)
+    # Read the first 10 rows
+    PEWS_dataframe.head(10)
