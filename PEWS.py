@@ -24,6 +24,6 @@ with open('my_PEWS_file.csv') as PEWS_file:
         print(row)
 
     # create a DataFrame form the PEWS data
-    PEWS_dataframe = pd.read_csv(PEWS_file)
+    PEWS_df = pd.read_csv(PEWS_file)
     # Read the first 10 rows
-    PEWS_dataframe.head(10)
+    PEWS_df.head(10)
