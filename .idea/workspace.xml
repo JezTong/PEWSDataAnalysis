@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d7a5d7fc-6c74-4481-b721-014257ba6f85" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PEWS.py" beforeDir="false" afterPath="$PROJECT_DIR$/PEWS.py" afterDir="false" />
-    </list>
+    <list default="true" id="d7a5d7fc-6c74-4481-b721-014257ba6f85" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -146,7 +143,7 @@
       <workItem from="1609712657758" duration="15000" />
       <workItem from="1609712710897" duration="317000" />
       <workItem from="1609713069240" duration="65000" />
-      <workItem from="1609767513752" duration="10899000" />
+      <workItem from="1609767513752" duration="11167000" />
     </task>
     <task id="LOCAL-00009" summary="Initial commit">
       <created>1609713092535</created>
@@ -155,7 +152,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609713092535</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Able to access test file on sharepoint and convert to a dataframe">
+      <created>1609781627504</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1609781627504</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -188,7 +192,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit added workspace config files" />
     <MESSAGE value="Initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
+    <MESSAGE value="Able to access test file on sharepoint and convert to a dataframe" />
+    <option name="LAST_COMMIT_MESSAGE" value="Able to access test file on sharepoint and convert to a dataframe" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1609781318292" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

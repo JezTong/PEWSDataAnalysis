@@ -14,12 +14,12 @@
 # Import Python Modules
 import io
 import csv
-import numpy as np
-import pandas as pd
-import requests
+import numpy as np # pip install numpy
+import pandas as pd # pip install pandas
+import requests # pip install requests
 import getpass
 
-# Import office365 share point API elements
+# Import office365 share point API elements # pip install Office365-REST-Python-Client
 from office365.runtime.auth.user_credential import UserCredential
 from office365.runtime.auth.authentication_context import AuthenticationContext
 from office365.sharepoint.client_context import ClientContext
