@@ -3,7 +3,7 @@
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
-    VERSION:       0.2.0
+    VERSION:       0.2.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
@@ -60,20 +60,3 @@ bytes_file_obj.seek(0)  # set file object to start
 # create a DataFrame form the PEWS data (can be excel file with .read_excel)
 PEWS_df = pd.read_csv(bytes_file_obj)
 print(PEWS_df.head(10))
-
-
-# Open the PEWS .csv file: replace 'my_PEWS_file.csv' with correct file path.
-# with open(filename, 'wb') as PEWS_file:
-#     response = File.open_binary(ctx, file_url)
-#     print(response)
-#     PEWS_file.write(response.content)
-#     print(PEWS_file)
-#     # read the PEWS .csv file
-#     PEWS_raw_data = csv.read    (PEWS_file)
-#     for row in PEWS_raw_data:
-#         print(row)
-
-#     # create a DataFrame form the PEWS data (can be excel file with .read_excel)
-#     PEWS_df = pd.DataFrame(PEWS_file)
-    # Read the first 10 rows
-    # print(PEWS_df.head(10))
