@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d7a5d7fc-6c74-4481-b721-014257ba6f85" name="Default Changelist" comment="" />
+    <list default="true" id="d7a5d7fc-6c74-4481-b721-014257ba6f85" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PEWS.py" beforeDir="false" afterPath="$PROJECT_DIR$/PEWS.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -144,6 +147,9 @@
       <workItem from="1609712710897" duration="317000" />
       <workItem from="1609713069240" duration="65000" />
       <workItem from="1609767513752" duration="11167000" />
+      <workItem from="1610528209622" duration="2528000" />
+      <workItem from="1610635042645" duration="394000" />
+      <workItem from="1610642476047" duration="3023000" />
     </task>
     <task id="LOCAL-00009" summary="Initial commit">
       <created>1609713092535</created>
@@ -159,7 +165,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609781627504</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Access Sharepoint file and create dataframe - Tidy up">
+      <created>1610402839870</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1610402839870</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -176,7 +189,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="origin/master" />
+                        <option value="HEAD" />
                       </list>
                     </value>
                   </entry>
@@ -193,10 +206,11 @@
     <MESSAGE value="Initial commit added workspace config files" />
     <MESSAGE value="Initial commit" />
     <MESSAGE value="Able to access test file on sharepoint and convert to a dataframe" />
-    <option name="LAST_COMMIT_MESSAGE" value="Able to access test file on sharepoint and convert to a dataframe" />
+    <MESSAGE value="Access Sharepoint file and create dataframe - Tidy up" />
+    <option name="LAST_COMMIT_MESSAGE" value="Access Sharepoint file and create dataframe - Tidy up" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1609781318292" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1610659123338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PEWSDataAnalysis$main.coverage" NAME="main Coverage Results" MODIFIED="1609608190987" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PEWSDataAnalysis$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1609694769961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

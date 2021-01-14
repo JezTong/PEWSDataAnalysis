@@ -18,6 +18,7 @@ import numpy as np # pip install numpy
 import pandas as pd # pip install pandas
 import requests # pip install requests
 import getpass
+from matplotlib import pyplot as plt
 
 # Import office365 share point API elements # pip install Office365-REST-Python-Client
 from office365.runtime.auth.user_credential import UserCredential
@@ -44,13 +45,13 @@ if ctx_auth.acquire_token_for_user(username, password):
   web = ctx.web
   ctx.load(web)
   ctx.execute_query()
-  print("Logged into: {0}".format(web.properties['Title']))
+  print("\nLogged into: {0}".format(web.properties['Title']))
 
 else:
   print (ctx_auth.get_last_error())
 
 
-# Download the file to memory
+# Download the file to temporary memory
 response = File.open_binary(ctx, file_url)
 # save data to BytesIO stream
 bytes_file_obj = io.BytesIO()
@@ -59,4 +60,42 @@ bytes_file_obj.seek(0)  # set file object to start
 
 # create a DataFrame form the PEWS data (can be excel file with .read_excel)
 PEWS_df = pd.read_csv(bytes_file_obj)
+
+# explore and examine the DataFrame
+print(PEWS_df.describe())
+print(PEWS_df.columns)
 print(PEWS_df.head(10))
+
+# explore the Heart Rate data and plot a histogram of heart rates
+HR = PEWS_df['Heart Rate'].values
+
+HR_min = np.amin(HR)
+HR_max = np.amax(HR)
+range = HR_max - HR_min
+print('\nThe lowest heart rate is {:.2f} beats per min'.format(HR_min))
+print('\nThe highest heart rate is {:.2f} beats per min'.format(HR_max))
+
+plt.hist(HR, range = (30, 150), bins = 12, edgecolor='white')
+plt.show()
+
+""" Some sample code to work with """
+# Example code to calculate standard deviation
+# standard_deviation = np.std(array)
+
+# Example code to calculate min, max & range
+# minimum = np.amin(array)
+# maximum = np.amax(array)
+# range = maximum - minimum
+
+# Example code to plot a histogram
+# Save transaction times to a separate numpy array
+# array = dataframe["Column name"].values
+# plt.figure(1) # multiple plots in same figure
+# plt.subplot(211) # sub plot in same figure
+# plt.hist(array, range = (min_value, max_value), bins = num_of_bars)
+# plt.title('Chart Title')
+# plt.xlabel('x axis label')
+# plt.ylabel('y axis label')
+# plt.tight_layout() # prevent the labels from overlapping with the graphs
+# plt.show()
+
