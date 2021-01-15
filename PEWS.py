@@ -87,6 +87,13 @@ plt.show()
 # maximum = np.amax(array)
 # range = maximum - minimum
 
+# Example code to calculate percentiles
+# fiftieth_centile = np.quantile(array, 0.5)
+# centiles = np.quantile(array, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)
+# Plot the centiles on a histogram
+# for centile in centiles:
+#   plt.axvline(x = centile, colour = 'red')
+
 # Example code to plot a histogram
 # Save transaction times to a separate numpy array
 # array = dataframe["Column name"].values
