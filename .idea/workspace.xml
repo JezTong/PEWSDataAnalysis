@@ -150,7 +150,7 @@
       <workItem from="1610528209622" duration="2528000" />
       <workItem from="1610635042645" duration="394000" />
       <workItem from="1610642476047" duration="3287000" />
-      <workItem from="1610728130627" duration="1109000" />
+      <workItem from="1610728130627" duration="7413000" />
     </task>
     <task id="LOCAL-00009" summary="Initial commit">
       <created>1609713092535</created>
@@ -180,7 +180,14 @@
       <option name="project" value="LOCAL" />
       <updated>1610661779181</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Example code for calculating and plotting centiles">
+      <created>1610731328173</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1610731328173</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -216,7 +223,8 @@
     <MESSAGE value="Able to access test file on sharepoint and convert to a dataframe" />
     <MESSAGE value="Access Sharepoint file and create dataframe - Tidy up" />
     <MESSAGE value="started describing HR, added example code for histograms" />
-    <option name="LAST_COMMIT_MESSAGE" value="started describing HR, added example code for histograms" />
+    <MESSAGE value="Example code for calculating and plotting centiles" />
+    <option name="LAST_COMMIT_MESSAGE" value="Example code for calculating and plotting centiles" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1610659123338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

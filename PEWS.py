@@ -29,8 +29,8 @@ from office365.sharepoint.files.file import File
 
 
 sharepoint_url = "https://uhltrnhsuk.sharepoint.com"
-username = input('username: ')
-password = getpass.getpass()
+username = 'jeremy.tong@uhl-tr.nhs.uk' # input('username: ')
+password = 'EdWhite.1' # getpass.getpass()
 site_url = "https://uhltrnhsuk.sharepoint.com/sites/case"
 folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
 file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Test_200.csv"
@@ -75,7 +75,25 @@ range = HR_max - HR_min
 print('\nThe lowest heart rate is {:.2f} beats per min'.format(HR_min))
 print('\nThe highest heart rate is {:.2f} beats per min'.format(HR_max))
 
-plt.hist(HR, range = (30, 150), bins = 12, edgecolor='white')
+HR_centiles = np.quantile(HR, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
+centile_line_color = ['red', 'orange', 'yellow', 'green', 'yellow', 'orange', 'red']
+
+plt.hist(HR, range = (30, 150), bins = 12, edgecolor = 'white')
+
+for n in [0, 1, 2, 3, 4, 5, 6]:
+  plt.axvline(x = HR_centiles[n], color = centile_line_color[n])
+
+# for centile in HR_centiles:
+#   plt.axvline(x = centile, color = 'red')
+
+# plt.axvline(x = HR_centiles[0], c = 'red') # 5th centile
+# plt.axvline(x = HR_centiles[1], c = 'orange') # 10th centile
+# plt.axvline(x = HR_centiles[2], c = 'yellow') # 25th centile
+# plt.axvline(x = HR_centiles[3], c = 'green') # 50th centile
+# plt.axvline(x = HR_centiles[4], c = 'yellow') # 75th centile
+# plt.axvline(x = HR_centiles[5], c = 'orange') # 90th centile
+# plt.axvline(x = HR_centiles[6], c = 'red') # 95th centile
+
 plt.show()
 
 """ Some sample code to work with """
@@ -89,10 +107,10 @@ plt.show()
 
 # Example code to calculate percentiles
 # fiftieth_centile = np.quantile(array, 0.5)
-# centiles = np.quantile(array, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)
+# centiles = np.quantile(array, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
 # Plot the centiles on a histogram
 # for centile in centiles:
-#   plt.axvline(x = centile, colour = 'red')
+#   plt.axvline(x = centile, color = 'red')
 
 # Example code to plot a histogram
 # Save transaction times to a separate numpy array
