@@ -33,8 +33,8 @@ username = input('username: ')
 password = getpass.getpass()
 site_url = "https://uhltrnhsuk.sharepoint.com/sites/case"
 folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
-file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Data_1.csv"
-filename = "PEWS_NC_Data_1.csv"
+file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Data.csv"
+filename = "PEWS_NC_Data.csv"
 
 
 # Access sharepoint folder with authentication
@@ -67,6 +67,9 @@ print(PEWS_df.columns)
 print(PEWS_df.head(10))
 
 # explore the Heart Rate data and plot a histogram of heart rates
+PEWS_df.HR = PEWS_df['HR'].replace('\D+', np.NaN, regex = True)    # replace text with null
+PEWS_df.HR = PEWS_df['HR'].dropna()                   # remove null values
+PEWS_df.HR = pd.to_numeric(PEWS_df.HR)                # convert to python float/int
 HR = PEWS_df['HR'].values
 
 HR_min = np.amin(HR)
@@ -93,7 +96,7 @@ for n in [0, 1, 2, 3, 4, 5, 6]:
 # plt.axvline(x = HR_centiles[4], c = 'yellow') # 75th centile
 # plt.axvline(x = HR_centiles[5], c = 'orange') # 90th centile
 # plt.axvline(x = HR_centiles[6], c = 'red') # 95th centile
-
+plt.title('Heart Rate')
 plt.show()
 
 """ Some sample code to work with """
