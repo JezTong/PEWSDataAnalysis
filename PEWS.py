@@ -32,9 +32,9 @@ sharepoint_url = "https://uhltrnhsuk.sharepoint.com"
 username = input('username: ')
 password = getpass.getpass()
 site_url = "https://uhltrnhsuk.sharepoint.com/sites/case"
-folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
-file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Data.csv"
-filename = "PEWS_NC_Data.csv"
+file_one_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Data.csv"
+# folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
+# filename: "PEWS_NC_Data.csv", "PEWS_NC_Data.csv"
 
 
 # Access sharepoint folder with authentication
@@ -52,7 +52,7 @@ else:
 
 
 # Download the file to temporary memory
-response = File.open_binary(ctx, file_url)
+response = File.open_binary(ctx, file_one_url)
 # save data to BytesIO stream
 bytes_file_obj = io.BytesIO()
 bytes_file_obj.write(response.content)
@@ -62,40 +62,48 @@ bytes_file_obj.seek(0)  # set file object to start
 PEWS_df = pd.read_csv(bytes_file_obj)
 
 # explore and examine the DataFrame
+print('\nDisplaying CSV column headers and data types:\n')
+print(PEWS_df.dtypes)
+print('\n')
 print(PEWS_df.describe())
-print(PEWS_df.columns)
-print(PEWS_df.head(10))
+# print(PEWS_df.head(10))
+print('\nCleaning PEWS Data...' )
+
+# Clean the PEWS Data
+PEWS_df.HR = PEWS_df['HR'].replace('\D+', np.NaN, regex = True)   # replace text with null
+PEWS_df.HR = pd.to_numeric(PEWS_df.HR)                            # convert to python float/int
+PEWS_df.HR = PEWS_df['HR'].dropna()                               # remove null values
+Heart_Rate = PEWS_df['HR'].values
+
+print(PEWS_df.dtypes)
+print(PEWS_df.describe())
+print('\n')
 
 # explore the Heart Rate data and plot a histogram of heart rates
-PEWS_df.HR = PEWS_df['HR'].replace('\D+', np.NaN, regex = True)    # replace text with null
-PEWS_df.HR = PEWS_df['HR'].dropna()                   # remove null values
-PEWS_df.HR = pd.to_numeric(PEWS_df.HR)                # convert to python float/int
-HR = PEWS_df['HR'].values
-
-HR_min = np.amin(HR)
-HR_max = np.amax(HR)
+HR_min = np.amin(Heart_Rate)
+HR_max = np.amax(Heart_Rate)
 range = HR_max - HR_min
 print('\nThe lowest heart rate is {:.2f} beats per min'.format(HR_min))
 print('\nThe highest heart rate is {:.2f} beats per min'.format(HR_max))
 
-HR_centiles = np.quantile(HR, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
-centile_line_color = ['red', 'orange', 'yellow', 'green', 'yellow', 'orange', 'red']
+HR_centiles = np.quantile(Heart_Rate, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
+# centile_line_color = ['red', 'orange', 'yellow', 'green', 'yellow', 'orange', 'red']
 
-plt.hist(HR, range = (30, 150), bins = 12, edgecolor = 'white')
+plt.hist(Heart_Rate, range = (0, 250), bins = 25, edgecolor = 'white')
 
-for n in [0, 1, 2, 3, 4, 5, 6]:
-  plt.axvline(x = HR_centiles[n], color = centile_line_color[n])
+# for n in [0, 1, 2, 3, 4, 5, 6]:
+#   plt.axvline(x = HR_centiles[n], color = centile_line_color[n])
 
 # for centile in HR_centiles:
 #   plt.axvline(x = centile, color = 'red')
 
-# plt.axvline(x = HR_centiles[0], c = 'red') # 5th centile
-# plt.axvline(x = HR_centiles[1], c = 'orange') # 10th centile
-# plt.axvline(x = HR_centiles[2], c = 'yellow') # 25th centile
-# plt.axvline(x = HR_centiles[3], c = 'green') # 50th centile
-# plt.axvline(x = HR_centiles[4], c = 'yellow') # 75th centile
-# plt.axvline(x = HR_centiles[5], c = 'orange') # 90th centile
-# plt.axvline(x = HR_centiles[6], c = 'red') # 95th centile
+plt.axvline(x = HR_centiles[0], c = 'red') # 5th centile
+plt.axvline(x = HR_centiles[1], c = 'orange') # 10th centile
+plt.axvline(x = HR_centiles[2], c = 'yellow') # 25th centile
+plt.axvline(x = HR_centiles[3], c = 'green') # 50th centile
+plt.axvline(x = HR_centiles[4], c = 'yellow') # 75th centile
+plt.axvline(x = HR_centiles[5], c = 'orange') # 90th centile
+plt.axvline(x = HR_centiles[6], c = 'red') # 95th centile
 plt.title('Heart Rate')
 plt.show()
 

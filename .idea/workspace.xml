@@ -151,7 +151,7 @@
       <workItem from="1610635042645" duration="394000" />
       <workItem from="1610642476047" duration="3287000" />
       <workItem from="1610728130627" duration="7479000" />
-      <workItem from="1610986398185" duration="4917000" />
+      <workItem from="1610986398185" duration="7926000" />
     </task>
     <task id="LOCAL-00009" summary="Initial commit">
       <created>1609713092535</created>
@@ -202,7 +202,14 @@
       <option name="project" value="LOCAL" />
       <updated>1610987464420</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Limited data cleaning for HR">
+      <created>1610993084322</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1610993084322</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -240,10 +247,11 @@
     <MESSAGE value="started describing HR, added example code for histograms" />
     <MESSAGE value="Example code for calculating and plotting centiles" />
     <MESSAGE value="Changed link to data file" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed link to data file" />
+    <MESSAGE value="Limited data cleaning for HR" />
+    <option name="LAST_COMMIT_MESSAGE" value="Limited data cleaning for HR" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1610659123338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1610993421035" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PEWSDataAnalysis$main.coverage" NAME="main Coverage Results" MODIFIED="1609608190987" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PEWSDataAnalysis$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1609694769961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
