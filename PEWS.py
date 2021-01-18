@@ -29,12 +29,12 @@ from office365.sharepoint.files.file import File
 
 
 sharepoint_url = "https://uhltrnhsuk.sharepoint.com"
-username = 'jeremy.tong@uhl-tr.nhs.uk' # input('username: ')
-password = 'EdWhite.1' # getpass.getpass()
+username = input('username: ')
+password = getpass.getpass()
 site_url = "https://uhltrnhsuk.sharepoint.com/sites/case"
 folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
-file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Test_200.csv"
-filename = "PEWS_NC_TEST_200.csv"
+file_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/PEWS_NC_Data_1.csv"
+filename = "PEWS_NC_Data_1.csv"
 
 
 # Access sharepoint folder with authentication
@@ -67,7 +67,7 @@ print(PEWS_df.columns)
 print(PEWS_df.head(10))
 
 # explore the Heart Rate data and plot a histogram of heart rates
-HR = PEWS_df['Heart Rate'].values
+HR = PEWS_df['HR'].values
 
 HR_min = np.amin(HR)
 HR_max = np.amax(HR)
@@ -105,12 +105,13 @@ plt.show()
 # maximum = np.amax(array)
 # range = maximum - minimum
 
-# Example code to calculate percentiles
+# Example code to calculate percentiles and interquartile range
 # fiftieth_centile = np.quantile(array, 0.5)
 # centiles = np.quantile(array, [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
 # Plot the centiles on a histogram
 # for centile in centiles:
 #   plt.axvline(x = centile, color = 'red')
+# interquartile_range = iqr(array)
 
 # Example code to plot a histogram
 # Save transaction times to a separate numpy array
