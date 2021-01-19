@@ -26,7 +26,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="settings.editor.selected.configurable" value="database.data.csv.formats" />
+    <property name="settings.editor.selected.configurable" value="preferences.toDoOptions" />
   </component>
   <component name="RunManager">
     <configuration name="PEWS" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -151,7 +151,7 @@
       <workItem from="1610635042645" duration="394000" />
       <workItem from="1610642476047" duration="3287000" />
       <workItem from="1610728130627" duration="7479000" />
-      <workItem from="1610986398185" duration="7926000" />
+      <workItem from="1610986398185" duration="15352000" />
     </task>
     <task id="LOCAL-00009" summary="Initial commit">
       <created>1609713092535</created>
@@ -209,7 +209,14 @@
       <option name="project" value="LOCAL" />
       <updated>1610993084322</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Limited data cleaning for HR - work in progress">
+      <created>1610997268769</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1610997268769</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -248,7 +255,8 @@
     <MESSAGE value="Example code for calculating and plotting centiles" />
     <MESSAGE value="Changed link to data file" />
     <MESSAGE value="Limited data cleaning for HR" />
-    <option name="LAST_COMMIT_MESSAGE" value="Limited data cleaning for HR" />
+    <MESSAGE value="Limited data cleaning for HR - work in progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="Limited data cleaning for HR - work in progress" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/PEWS_py$PEWS.coverage" NAME="PEWS Coverage Results" MODIFIED="1610993421035" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
