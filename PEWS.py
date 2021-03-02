@@ -7,7 +7,7 @@
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
-                    io, csv, Numpy, Pandas, Requests, getpass
+                    io, Numpy, Pandas, Mathplotlib, Seaborn, getpass
                     Office365-REST-Python-Client 2.3.1 https://pypi.org/project/Office365-REST-Python-Client/
 """
 
