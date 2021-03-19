@@ -67,7 +67,7 @@ df.HR = df['HR'].dropna()  # remove null values
 """ Bin Data by age """
 
 PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12']  # Age bin category labels
+PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
 
 # classify age according to age bins and add an Age bin column to the PEWS Dataframe
 df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
