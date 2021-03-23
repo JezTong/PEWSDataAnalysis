@@ -12,6 +12,7 @@
 
 import pandas as pd
 import numpy as np
+from matplotlib.collections import LineCollection
 
 """ National PEWS model thresholds """
 
@@ -286,6 +287,8 @@ class UHL_PEWS(object):
 
         ]
 
+    pass
+
 
 # Function to generate a table containing the PEWS model
 def generate_model_table(model):
@@ -304,6 +307,7 @@ def generate_model_table(model):
     return table
 
 # print(generate_model_table('UHL_PEWS'))
+# print('\n')
 # print(generate_model_table('nat_PEWS'))
 
 
@@ -322,13 +326,12 @@ def get_thresolds(model, parameter):
 
     return limits
 
-# print(get_thresolds('UHL_PEWS', 'HR'))
-# table = get_thresolds('UHL_PEWS', 'HR')
-
 # Function to generate threshold limit line coordinates for plotting in a chart
-def generate_lines(table):
+def generate_lines(model, parameter, color = 'red', linewidth = 1):
     age_brackets = [0, 0, 1, 5, 12, 18]
     age_limits = [age * 365 for age in age_brackets]
+
+    table = get_thresolds(model, parameter)
 
     table['a1'] = table['bin']
     table['a2'] = table['bin']
@@ -338,11 +341,10 @@ def generate_lines(table):
 
     line_list = []
 
-    for i in range(len(table.a1)):
-        while i > 0:
-            line = [table.a1[i], table.maxi[i]], [table.a2[i], table.maxi[i]]
-            line_list.append(line)
+    for i in range(len(table)):
+        line = [table.a1[i], table.maxi[i]], [table.a2[i], table.maxi[i]]
+        line_list.append(line)
 
-    return line_list
+    return  LineCollection(line_list, linewidth=linewidth, color=color)
 
-# print(generate_lines(table))
+# print(generate_lines('UHL_PEWS', 'RR'))

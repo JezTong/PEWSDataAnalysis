@@ -28,16 +28,16 @@ import PEWS_thresholds as PT
 
 # limited file load (faster)
 PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-HISS_df = FA.load_file('HISS_Data_1.xlsx')
+# HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
-# PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
-# PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
-# PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
-#
-# HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
-# HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
-# HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
+PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
+PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
+
+HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
+HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
+HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
 # Merge the PEWS and HISS Data files
 print('\nMerging Data Files...')
@@ -49,13 +49,13 @@ print(df.describe())
 """ Data Exploring """
 
 # explore and examine the DataFrame
-print('\nDisplaying DataFrame column headers and data types:\n')
-print(df.dtypes)
+# print('\nDisplaying DataFrame column headers and data types:\n')
+# print(df.dtypes)
 # print(df.describe())
 # print(df.head(10))
 # print('\n')
 
-exit()
+# exit()
 
 """ Data Cleaning """
 
@@ -63,6 +63,11 @@ exit()
 df.HR = df['HR'].replace('\D+', np.NaN, regex=True)  # replace text with null
 df.HR = pd.to_numeric(df.HR)  # convert to python float/int
 df.HR = df['HR'].dropna()  # remove null values
+
+# Clean the PEWS Respiratory Rate Data
+df.RR = df.RR.replace('\D+', np.NaN, regex=True)
+df.RR = pd.to_numeric(df.RR)
+df.RR = df.RR.dropna()
 
 """ Bin Data by age """
 
@@ -78,32 +83,49 @@ HR = df[['HR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'
 HR = pd.DataFrame(HR, columns=['HR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
 # print(HR.head())
 print(HR.describe())
+print('\n')
 
-age_ticks = np.arange(0, 6570, 365).tolist()
-# print(age_ticks)
-age_labels = list(range(18))
+""" Select the Respiratory Rate Data """
+
+RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
+RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
+# print(HR.head())
+print(RR.describe())
+print('\n')
 
 
 
 """ Plot a histogram of all heart rates and add PEWS limits """
 
+age_ticks = np.arange(0, 6570, 365).tolist()
+# print(age_ticks)
+age_labels = list(range(18))
+
 # PLot the histogram
 plot4 = plt.figure(4)
-sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.4, s=5)  # hue = HR.admit_status
+sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5 )  #hue=HR.admit_status
 
-# Plot the UHL PEWS Thresholds
-UHL_t_table = PT.get_thresolds('UHL_PEWS', 'HR')    # Import the UHL PEWS thresholds for heart rate
-lc_1 = LineCollection(PT.generate_lines(UHL_t_table), linewidth=1, color='red')
-plt.gca().add_collection(lc_1)
+# Plot the thresholds
+plt.gca().add_collection(PT.generate_lines('UHL_PEWS', 'HR'))
 
-# Now plot the National PEWS thresholds
-nat_t_table = PT.get_thresolds('nat_PEWS', 'HR')    # Import the National PEWS thresholds for heart rate
-lc_2 = LineCollection(PT.generate_lines(nat_t_table), linewidth=1, color='orange')
-plt.gca().add_collection(lc_2)
+plt.xlabel('Age in Days')
+plt.ylabel('Heart Rates')
+# plt.show()
+
+# exit()
 
 
-plt.xlabel('age')
-plt.ylabel('HR')
+""" Plot a histogram of all respiratory rates and add PEWS limits """
+
+# PLot the histogram
+plot5 = plt.figure(5)
+sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='green' )  #hue=RR.admit_status
+
+# Plot the thresholds
+plt.gca().add_collection(PT.generate_lines('UHL_PEWS', 'RR'))
+
+plt.xlabel('Age in days')
+plt.ylabel('Respiratory Rates')
 plt.show()
 
 exit()
