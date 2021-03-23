@@ -21,8 +21,8 @@ import seaborn as sns  # pip install seaborn
 # code to access data files on sharepoint
 import File_Access as FA
 
-# Import PEWS model thresholds
-import PEWS_thresholds as PT
+# Import PEWS models
+import PEWS_models as PM
 
 """ Load the Sharepoint Files """
 
@@ -106,7 +106,7 @@ plot4 = plt.figure(4)
 sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5 )  #hue=HR.admit_status
 
 # Plot the thresholds
-plt.gca().add_collection(PT.generate_lines('UHL_PEWS', 'HR'))
+plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
 
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates')
@@ -122,7 +122,7 @@ plot5 = plt.figure(5)
 sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='green' )  #hue=RR.admit_status
 
 # Plot the thresholds
-plt.gca().add_collection(PT.generate_lines('UHL_PEWS', 'RR'))
+plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'RR'))
 
 plt.xlabel('Age in days')
 plt.ylabel('Respiratory Rates')
