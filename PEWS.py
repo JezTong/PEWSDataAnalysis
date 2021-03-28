@@ -28,16 +28,16 @@ import PEWS_models as PM
 
 # limited file load (faster)
 PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-# HISS_df = FA.load_file('HISS_Data_1.xlsx')
+HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
-PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
-PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
-PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
-
-HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
-HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
-HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+# PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
+# PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
+# PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
+#
+# HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
+# HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
+# HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
 # Merge the PEWS and HISS Data files
 print('\nMerging Data Files...')
@@ -69,6 +69,14 @@ df.RR = df.RR.replace('\D+', np.NaN, regex=True)
 df.RR = pd.to_numeric(df.RR)
 df.RR = df.RR.dropna()
 
+# Clean the PEWS Blood Pressure Data
+df.BP = df.RR.replace('\D+', np.NaN, regex=True)
+# TODO split BP using regex and create new column for the sBP data
+df['sBP'] = df.BP
+df.sBP = pd.to_numeric(df.RR)
+df.sBP = df.RR.dropna()
+
+
 """ Bin Data by age """
 
 PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
@@ -89,10 +97,17 @@ print('\n')
 
 RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
 RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
-# print(HR.head())
+# print(RR.head())
 print(RR.describe())
 print('\n')
 
+""" Select the Blood Pressure Data """
+
+# sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
+# sBP = pd.DataFrame(BP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
+# # print(sBP.head())
+# print(sBP.describe())
+# print('\n')
 
 
 """ Plot a histogram of all heart rates and add PEWS limits """
@@ -109,7 +124,7 @@ sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5 )  #hue=HR.admit_statu
 plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
 
 plt.xlabel('Age in Days')
-plt.ylabel('Heart Rates')
+plt.ylabel('Heart Rates per min')
 # plt.show()
 
 # exit()
@@ -119,16 +134,33 @@ plt.ylabel('Heart Rates')
 
 # PLot the histogram
 plot5 = plt.figure(5)
-sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='green' )  #hue=RR.admit_status
+sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=RR.admit_status
 
 # Plot the thresholds
 plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'RR'))
 
 plt.xlabel('Age in days')
-plt.ylabel('Respiratory Rates')
+plt.ylabel('Respiratory Rates per min)')
 plt.show()
 
 exit()
+
+""" Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
+
+# # PLot the histogram
+# plot6 = plt.figure(6)
+# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=RR.admit_status
+#
+# # Plot the thresholds
+# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
+#
+# plt.xlabel('Age in days')
+# plt.ylabel('Systolic Blood Pressure in mmHg')
+# plt.show()
+#
+# exit()
+
+
 
 """ Data Analysis """
 

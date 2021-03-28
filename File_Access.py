@@ -7,7 +7,7 @@
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for accessing PEWS Data on remote server for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
-                    io, Numpy, Pandas, Mathplotlib, Seaborn,
+                    io, Numpy, Pandas, Mathplotlib, Seaborn, python-decouple,
                     Office365-REST-Python-Client 2.3.1 https://pypi.org/project/Office365-REST-Python-Client/
 """
 
@@ -21,13 +21,16 @@ from office365.sharepoint.client_context import ClientContext
 from office365.runtime.client_request import ClientRequest
 from office365.sharepoint.files.file import File
 
+# Import Authentication tokens
+from decouple import config
+
 """ Sharepoint File Access """
 
-sharepoint_url = "https://uhltrnhsuk.sharepoint.com"
-username = input('username: ')
-password = getpass.getpass()
-site_url = "https://uhltrnhsuk.sharepoint.com/sites/case"
-folder_url = "/sites/case/Shared%20Documents/PEWSDataAnalysis/"
+sharepoint_url = config('sharepoint')
+username = config('username')   #input('username: ')
+password = config('password')   #getpass.getpass()
+site_url = config('site')
+folder_url = config('folder')
 
 # Access sharepoint folder with authentication
 ctx_auth = AuthenticationContext(sharepoint_url)

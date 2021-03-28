@@ -4,7 +4,9 @@ ExampleCode.py
 .git/
 .idea/
 .idea/workspace.xml
+.env
 *.pyc
 .DS_Store
 *.xlsx
 *.csv
+
