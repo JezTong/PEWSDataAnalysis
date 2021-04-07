@@ -45,22 +45,24 @@ import PEWS_models as PM
 # print('\nMerging Data Files...')
 # df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
 
-# Import Synthetic Obs dataset
+""" Import Synthetic Observations dataset """
 
 df = pd.read_csv('Data/synthetic_obs.csv')
 
-print('\nDisplaying DataFrame Summary:\n')
-print(df.describe())
-
-# exit()
 
 """ Data Exploring """
+print('\nDisplaying DataFrame Summary:\n')
+
+# set pandas options to display all columns in a DataFrame
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
 
 # explore and examine the DataFrame
+print(df.describe())
+# print(df.head(10))
+
 # print('\nDisplaying DataFrame column headers and data types:\n')
 # print(df.dtypes)
-# print(df.describe())
-# print(df.head(10))
 # print('\n')
 
 # exit()
