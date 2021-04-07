@@ -11,6 +11,8 @@
                     Office365-REST-Python-Client 2.3.1 https://pypi.org/project/Office365-REST-Python-Client/
 """
 
+#TODO Create a virtual Python environment and requirements.txt to allow installation of necessary packages using: python -m pip install -r requirements.txt
+
 # Import Python Modules
 import numpy as np  # pip install numpy
 import pandas as pd  # pip install pandas
@@ -27,8 +29,8 @@ import PEWS_models as PM
 """ Load the Sharepoint Files """
 
 # limited file load (faster)
-PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-HISS_df = FA.load_file('HISS_Data_1.xlsx')
+# PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
+# HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
 # PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
@@ -40,11 +42,17 @@ HISS_df = FA.load_file('HISS_Data_1.xlsx')
 # HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
 # Merge the PEWS and HISS Data files
-print('\nMerging Data Files...')
-df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+# print('\nMerging Data Files...')
+# df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+
+# Import Synthetic Obs dataset
+
+df = pd.read_csv('Data/synthetic_obs.csv')
+
 print('\nDisplaying DataFrame Summary:\n')
 print(df.describe())
 
+# exit()
 
 """ Data Exploring """
 
@@ -57,7 +65,33 @@ print(df.describe())
 
 # exit()
 
+""" Bin Data by age """
+
+PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
+PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
+
+# classify age according to age bins and add an Age bin column to the PEWS Dataframe
+df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
+
+
 """ Data Cleaning """
+
+# cs = ['age_in_days']
+#
+# def clean_data(df, parameter, column_selection):
+#     temp_df = df[[parameter, column_selection]]
+#     print(temp_df.describe())
+#     temp_df[parameter] = df[parameter].replace('\D+', np.NaN, regex=True)  # replace text with null
+#     temp_df[parameter] = pd.to_numeric(temp_df[parameter])  # convert to python float/int
+#     temp_df[parameter] = temp_df[parameter].dropna()  # remove null values
+#     print(temp_df.describe())
+#     return temp_df
+#
+# HR = clean_data(df, 'HR', cs)
+#
+# print(HR.describe())
+# print(HR)
+# exit()
 
 # Clean the PEWS Heart Rate Data
 df.HR = df['HR'].replace('\D+', np.NaN, regex=True)  # replace text with null
@@ -70,44 +104,38 @@ df.RR = pd.to_numeric(df.RR)
 df.RR = df.RR.dropna()
 
 # Clean the PEWS Blood Pressure Data
-df.BP = df.RR.replace('\D+', np.NaN, regex=True)
+df.sBP = df.sBP.replace('\D+', np.NaN, regex=True)
 # TODO split BP using regex and create new column for the sBP data
-df['sBP'] = df.BP
-df.sBP = pd.to_numeric(df.RR)
-df.sBP = df.RR.dropna()
+df['sBP'] = df.sBP
+df.sBP = pd.to_numeric(df.sBP)
+df.sBP = df.sBP.dropna()
 
 
-""" Bin Data by age """
 
-PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
-
-# classify age according to age bins and add an Age bin column to the PEWS Dataframe
-df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
 
 """ Select the Heart Rate Data """
 
-HR = df[['HR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
-HR = pd.DataFrame(HR, columns=['HR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
+HR = df[['HR', 'age_in_days', 'age', 'PEWS_bins']].values
+HR = pd.DataFrame(HR, columns=['HR', 'age_in_days', 'age', 'PEWS_bins'])
 # print(HR.head())
 print(HR.describe())
 print('\n')
 
 """ Select the Respiratory Rate Data """
 
-RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
-RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
+RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins']].values
+RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins'])
 # print(RR.head())
 print(RR.describe())
 print('\n')
 
 """ Select the Blood Pressure Data """
 
-# sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status']].values
-# sBP = pd.DataFrame(BP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins', 'obs_sequence', 'admit_status'])
-# # print(sBP.head())
-# print(sBP.describe())
-# print('\n')
+sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins']].values
+sBP = pd.DataFrame(sBP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins'])
+# print(sBP.head())
+print(sBP.describe())
+print('\n')
 
 
 """ Plot a histogram of all heart rates and add PEWS limits """
@@ -141,24 +169,24 @@ plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'RR'))
 
 plt.xlabel('Age in days')
 plt.ylabel('Respiratory Rates per min)')
-plt.show()
+# plt.show()
 
-exit()
+# exit()
 
 """ Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
 
-# # PLot the histogram
-# plot6 = plt.figure(6)
-# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=RR.admit_status
-#
-# # Plot the thresholds
-# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
-#
-# plt.xlabel('Age in days')
-# plt.ylabel('Systolic Blood Pressure in mmHg')
-# plt.show()
-#
-# exit()
+# PLot the histogram
+plot6 = plt.figure(6)
+sns.scatterplot(x=sBP.age_in_days, y=sBP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+
+# Plot the thresholds
+plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
+
+plt.xlabel('Age in days')
+plt.ylabel('Systolic Blood Pressure in mmHg')
+plt.show()
+
+exit()
 
 
 
