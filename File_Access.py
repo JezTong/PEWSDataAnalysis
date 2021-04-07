@@ -1,5 +1,5 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis: File_Access.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
@@ -57,15 +57,14 @@ def load_file(filename):
     bytes_file_obj.seek(0)
 
     global df
+    print('\nLoading {}...'.format(filename))
 
     if filename.endswith(".xlsx"):
-        print('\nLoading {}...'.format(filename))
-        dict = pd.read_excel(bytes_file_obj, sheet_name='Sheet1')  # read the excel file in python as a dictonary
+        dict = pd.read_excel(bytes_file_obj, sheet_name='Sheet1')  # read the excel file in python as a dictionary
         df = pd.DataFrame.from_dict(dict)  # convert dictionary to a dataframe using pandas
         return df
 
     elif filename.endswith(".csv"):
-        print("\nLoading {}...".format(filename))
         df = pd.read_csv(bytes_file_obj)  # read the .csv file in python as a dataframe
         return df
 
