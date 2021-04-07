@@ -1,5 +1,5 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis: PEWS_models.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
@@ -61,10 +61,10 @@ class nat_PEWS(object):
             [4, 'RR', 11, 15, 1, True],
             [4, 'RR', 0, 10, 4, False],
 
-            [0, 'Resp Dis', '', 'severe', 4, False],
-            [0, 'Resp Dis', '', 'moderate', 2, False],
-            [0, 'Resp Dis', '', 'mild', 1, False],
-            [0, 'Resp Dis', '', 'none', 0, False],
+            [0, 'Resp_Dis', '', 'severe', 4, False],
+            [0, 'Resp_Dis', '', 'moderate', 2, False],
+            [0, 'Resp_Dis', '', 'mild', 1, False],
+            [0, 'Resp_Dis', '', 'none', 0, False],
 
             [0, 'Sats', 0, 91, 4, False],
             [0, 'Sats', 92, 94, 1, False],
@@ -225,19 +225,19 @@ class UHL_PEWS(object):
             [4, 'RR', 7, 10, 1, True],
             [4, 'RR', 0, 6, 1, False],
 
-            [1, 'sBP', 110, 250, 0, True],
+            [1, 'sBP', 110, 250, 0, False],
             [1, 'sBP', 71, 109, 0, True],
             [1, 'sBP', 61, 70, 0, True],
             [1, 'sBP', 51, 60, 0, False],
             [1, 'sBP', 30, 50, 0, False],
 
-            [2, 'sBP', 111, 250, 0, True],
+            [2, 'sBP', 111, 250, 0, False],
             [2, 'sBP', 81, 110, 0, True],
             [2, 'sBP', 71, 80, 0, True],
             [2, 'sBP', 61, 70, 0, False],
             [2, 'sBP', 30, 60, 0, False],
 
-            [3, 'sBP', 121, 250, 0, True],
+            [3, 'sBP', 121, 250, 0, False],
             [3, 'sBP', 91, 120, 0, True],
             [3, 'sBP', 81, 90, 0, True],
             [3, 'sBP', 71, 80, 0, False],
@@ -248,8 +248,8 @@ class UHL_PEWS(object):
             [4, 'sBP', 76, 100, 0, True],
             [4, 'sBP', 30, 75, 0, False],
 
-            [0, 'O2', 24, 100, 1, False],
-            [0, 'O2', 20, 23, 0, False],
+            [0, 'FiO2', 24, 100, 1, False],
+            [0, 'FiO2', 20, 23, 0, False],
 
             [0, 'Sats', 94, 100, 0, False],
             [0, 'Sats', 30, 93, 0, False],
@@ -261,14 +261,14 @@ class UHL_PEWS(object):
             [0, 'WoB', '', 'mild', 0, False],
             [0, 'WoB', '', 'none', 0, False],
 
-            [0, 'concern', '', 'Nurse', 1, False],
-            [0, 'concern', '', 'parent', 1, False],
+            [0, 'UHL_concern', '', 'Nurse', 1, False],
+            [0, 'UHL_concern', '', 'parent', 1, False],
 
-            [0, 'ACVPU', '', 'unresponsive', 1, False],
-            [0, 'ACVPU', '', 'pain', 1, False],
-            [0, 'ACVPU', '', 'voice', 1, False],
-            [0, 'ACVPU', '', 'alert', 0, False],
-            [0, 'ACVPU', '', 'asleep', 0, False],
+            [0, 'AVPU', '', 'unresponsive', 1, False],
+            [0, 'AVPU', '', 'pain', 1, False],
+            [0, 'AVPU', '', 'voice', 1, False],
+            [0, 'AVPU', '', 'alert', 0, False],
+            [0, 'AVPU', '', 'asleep', 0, False],
 
             [0, 'temp', 28.0, 36.0, 0, False],
             [0, 'temp', 36.1, 38.4, 0, False],
