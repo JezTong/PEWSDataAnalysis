@@ -306,10 +306,32 @@ def generate_model_table(model):
 
     return table
 
-# print(generate_model_table('UHL_PEWS'))
-# print('\n')
-# print(generate_model_table('nat_PEWS'))
 
+# Function to generate a table containing the PEWS model limits (better for plotting)
+def generate_thresholds_table(model, parameter, score):
+    columns = ['bins', 'parameter', 'lo_limit', 'up_limit', 'score', 'plot?']
+
+    if model == 'UHL_PEWS':
+        table = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
+
+    elif model == 'nat_PEWS':
+        table = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
+
+    # select the correct parameter and cut the threshold table down to size
+    table = table.loc[(table['parameter'] == parameter) & (table['score'] == score)].reset_index()
+    table = table[['bins', 'lo_limit', 'up_limit']]
+
+    age_bins = [0, 365, 1826, 4383, 6575]
+
+    # create new table and map thresholds to age on a continuous scale
+    mapping = pd.DataFrame({'age': range(1, 6575),
+                            'bins': pd.cut(range(1, 6575), bins=age_bins, labels=[1, 2, 3, 4])})
+    new_table = mapping.merge(table)
+
+    return new_table
+
+# print(generate_model_table('nat_PEWS', 'HR', 0))
+# exit()
 
 # Function for looking up thresholds for a specified parameter of a specified PEWS model
 def get_thresolds(model, parameter):
@@ -347,4 +369,11 @@ def generate_lines(model, parameter, color = 'red', linewidth = 1):
 
     return  LineCollection(line_list, linewidth=linewidth, color=color)
 
-# print(generate_lines('UHL_PEWS', 'RR'))
+
+""" view threshold tables and generate .csv files """
+
+# print(generate_model_table('UHL_PEWS'))
+# print('\n')
+# print(generate_model_table('nat_PEWS'))
+# generate_model_table('nat_PEWS').to_csv('nat_PEWS_limits.csv', index=False)
+# generate_model_table('UHL_PEWS').to_csv('UHL_PEWS_limits.csv', index=False)
