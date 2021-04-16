@@ -72,5 +72,9 @@ global df
 df = pd.DataFrame(data).reset_index(drop=True)
 df.to_csv('synthetic_obs.csv', index=False)
 
-# print(df.head())
-# print(df.describe())
+
+# set pandas options to display all columns in a DataFrame
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+print(df.head())
+print(df.describe())
