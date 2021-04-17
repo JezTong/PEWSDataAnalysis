@@ -106,7 +106,7 @@ class nat_PEWS(object):
             [4, 'HR', 71, 100, 0, True],
             [4, 'HR', 61, 70, 1, True],
             [4, 'HR', 51, 60, 2, True],
-            [4, 'HR', -1, 50, 4, False],
+            [4, 'HR', 0, 50, 4, False],
 
             [1, 'sBP', 111, 250, 4, False],
             [1, 'sBP', 101, 110, 2, True],
@@ -289,6 +289,9 @@ class UHL_PEWS(object):
 
     pass
 
+# set pandas options to display all columns in a DataFrame
+# pd.set_option('display.max_rows', None)
+# pd.set_option('display.width', None)
 
 # Function to generate a table containing the PEWS model
 def generate_model_table(model):
@@ -309,28 +312,61 @@ def generate_model_table(model):
 
 # Function to generate a table containing the PEWS model limits (better for plotting)
 def generate_thresholds_table(model, parameter, score):
-    columns = ['bins', 'parameter', 'lo_limit', 'up_limit', 'score', 'plot?']
+    columns = ['bins', 'parameter', 'lower', 'upper', 'score', 'plot?']
+    temp_1 = []
 
     if model == 'UHL_PEWS':
-        table = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
+        temp_1 = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
 
     elif model == 'nat_PEWS':
-        table = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
+        temp_1 = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
 
-    # select the correct parameter and cut the threshold table down to size
-    table = table.loc[(table['parameter'] == parameter) & (table['score'] == score)].reset_index()
-    table = table[['bins', 'lo_limit', 'up_limit']]
+    # limit the DataFrame to the parameters in question
+    temp_1 = temp_1.loc[(temp_1.parameter == parameter) & (temp_1['score'] == score)].reset_index(drop=True)
+    temp_1 = temp_1[['bins', 'score', 'lower', 'upper']]
+    temp_1 = temp_1.apply(pd.to_numeric)
 
-    age_bins = [0, 365, 1826, 4383, 6575]
+    # scores = temp_1.score.unique().tolist()
+    # for score in scores:
+    #     if score == 0:
+    #         temp_2 = temp_1.loc[temp_1.score == 0].reset_index(drop=True)
+    #     elif score == 1:
+    #         temp_3 = temp_1.loc[temp_1.score == 1].reset_index(drop=True)
+    #     elif score == 2:
+    #         temp_4 = temp_1.loc[temp_1.score == 2].reset_index(drop=True)
+    #     elif score == 4:
+    #         temp_5 = temp_1.loc[temp_1.score == 4].reset_index(drop=True)
 
     # create new table and map thresholds to age on a continuous scale
-    mapping = pd.DataFrame({'age': range(1, 6575),
+    age_bins = [0, 365, 1826, 4383, 6575]
+    temp_2 = pd.DataFrame({'age': range(1, 6575),
                             'bins': pd.cut(range(1, 6575), bins=age_bins, labels=[1, 2, 3, 4])})
-    new_table = mapping.merge(table)
+    table = temp_2.merge(temp_1)
 
-    return new_table
+    table = table[['age', 'lower', 'upper', 'score']]
 
-# print(generate_model_table('nat_PEWS', 'HR', 0))
+    # separate the two sets of thresholds for scores that are > 0
+    if score != 0:
+        temp_3 = table[table.index % 2 == 1].reset_index(drop=True)
+        temp_3 = temp_3[['age', 'upper']]
+        temp_3 = temp_3.rename(columns={'upper': 'lower'}, inplace=False)
+
+        temp_4 = table[table.index % 2 == 0].reset_index(drop=True)
+        temp_4 = temp_4[['age', 'upper']]
+
+        table = pd.merge(temp_3, temp_4, how='right', on='age')
+        table = table[['age', 'lower', 'upper']]
+
+    else:
+        temp_3 = table[table.index % 2 == 1].reset_index(drop=True)
+        temp_3 = temp_3[['age', 'upper']]
+        temp_3 = temp_3.rename(columns={'upper': 'lower'}, inplace=False)
+        table = table[['age', 'upper']]
+        table = pd.merge(table, temp_3, how='right', on='age')
+
+    return table
+
+# print(generate_thresholds_table('nat_PEWS', 'HR', 0))
 # exit()
 
 # Function for looking up thresholds for a specified parameter of a specified PEWS model

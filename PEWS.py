@@ -21,7 +21,7 @@ from matplotlib.collections import LineCollection
 import seaborn as sns  # pip install seaborn
 
 # code to access data files on sharepoint
-import File_Access as FA
+# import File_Access as FA
 
 # Import PEWS models
 import PEWS_models as PM
@@ -142,22 +142,44 @@ print('\n')
 
 """ Plot a histogram of all heart rates and add PEWS limits """
 
-age_ticks = np.arange(0, 6570, 365).tolist()
-# print(age_ticks)
-age_labels = list(range(18))
+# age_ticks = np.arange(0, 6570, 365).tolist()
+# # print(age_ticks)
+# age_labels = list(range(18))
 
 # PLot the histogram
 plot4 = plt.figure(4)
-sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5 )  #hue=HR.admit_status
+sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
 
-# Plot the thresholds
-plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
+# Plot the thresholds - option 1 brute force
+# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
+
+# generate the threshold tables
+
+score_0 = PM.generate_thresholds_table('nat_PEWS', 'HR', 0)
+score_1 = PM.generate_thresholds_table('nat_PEWS', 'HR', 1)
+score_2 = PM.generate_thresholds_table('nat_PEWS', 'HR', 2)
+score_4 = PM.generate_thresholds_table('nat_PEWS', 'HR', 4)
+
+# Plot the thresholds - option 2 computabale table
+plt.plot(score_0.age, score_0.lower, color='orange', linewidth=1)
+plt.plot(score_0.age, score_0.upper, color='orange', linewidth=1)
+
+plt.plot(score_1.age, score_1.lower, color='orange', linewidth=1)
+plt.plot(score_1.age, score_1.upper, color='orange', linewidth=1)
+
+# plt.fill_between('age', 'up_limit', 'lo_limit', color='orange', alpha=0.1)
+plt.plot(score_2.age, score_2.lower, color='orange', linewidth=1)
+plt.plot(score_2.age, score_2.upper, color='red', linewidth=1)
+
+# plt.plot(score_4.age, score_4.upper, color='red', linewidth=1)
+plt.plot(score_4.age, score_4.lower, color='red', linewidth=1)
 
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
-# plt.show()
+# plt.legend()
+plt.show()
 
-# exit()
+exit()
 
 
 """ Plot a histogram of all respiratory rates and add PEWS limits """
