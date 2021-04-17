@@ -76,7 +76,7 @@ class nat_PEWS(object):
             [0, 'O2liters', 4, 15, 4, False],
             [0, 'O2litres', 0.1, 4, 1, False],
 
-            [1, 'HR', 181, 310, 4, False],
+            [1, 'HR', 181, 300, 4, False],
             [1, 'HR', 171, 180, 2, True],
             [1, 'HR', 151, 170, 1, True],
             [1, 'HR', 111, 150, 0, True],
@@ -84,7 +84,7 @@ class nat_PEWS(object):
             [1, 'HR', 81, 90, 2, True],
             [1, 'HR', 0, 80, 4, False],
 
-            [2, 'HR', 171, 310, 4, False],
+            [2, 'HR', 171, 300, 4, False],
             [2, 'HR', 151, 170, 2, True],
             [2, 'HR', 121, 150, 1, True],
             [2, 'HR', 91, 120, 0, True],
@@ -92,7 +92,7 @@ class nat_PEWS(object):
             [2, 'HR', 61, 70, 2, True],
             [2, 'HR', 0, 60, 4, False],
 
-            [3, 'HR', 161, 310, 4, False],
+            [3, 'HR', 161, 300, 4, False],
             [3, 'HR', 141, 160, 2, True],
             [3, 'HR', 121, 140, 1, True],
             [3, 'HR', 81, 120, 0, True],
@@ -100,7 +100,7 @@ class nat_PEWS(object):
             [3, 'HR', 61, 70, 2, True],
             [3, 'HR', 0, 60, 4, False],
 
-            [4, 'HR', 131, 310, 4, False],
+            [4, 'HR', 131, 300, 4, False],
             [4, 'HR', 121, 130, 2, True],
             [4, 'HR', 101, 120, 1, True],
             [4, 'HR', 71, 100, 0, True],
@@ -358,15 +358,15 @@ def generate_thresholds_table(model, parameter, score):
         table = table[['age', 'lower', 'upper']]
 
     else:
-        temp_3 = table[table.index % 2 == 1].reset_index(drop=True)
-        temp_3 = temp_3[['age', 'upper']]
-        temp_3 = temp_3.rename(columns={'upper': 'lower'}, inplace=False)
-        table = table[['age', 'upper']]
-        table = pd.merge(table, temp_3, how='right', on='age')
+        # temp_3 = table[table.index % 2 == 1].reset_index(drop=True)
+        # temp_3 = temp_3[['age', 'upper']]
+        # temp_3 = temp_3.rename(columns={'upper': 'lower'}, inplace=False)
+        table = table[['age', 'lower', 'upper']]
+        # table = pd.merge(table, temp_3, how='right', on='age')
 
     return table
 
-# print(generate_thresholds_table('nat_PEWS', 'HR', 0))
+# print(generate_thresholds_table('UHL_PEWS', 'HR', 0))
 # exit()
 
 # Function for looking up thresholds for a specified parameter of a specified PEWS model

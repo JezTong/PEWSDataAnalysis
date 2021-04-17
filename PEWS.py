@@ -21,7 +21,7 @@ from matplotlib.collections import LineCollection
 import seaborn as sns  # pip install seaborn
 
 # code to access data files on sharepoint
-# import File_Access as FA
+import File_Access as FA
 
 # Import PEWS models
 import PEWS_models as PM
@@ -29,25 +29,25 @@ import PEWS_models as PM
 """ Load the Sharepoint Files """
 
 # limited file load (faster)
-# PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-# HISS_df = FA.load_file('HISS_Data_1.xlsx')
+PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
+HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
-# PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
-# PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
-# PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
-#
-# HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
-# HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
-# HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
+PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
+PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
+
+HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
+HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
+HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
 # Merge the PEWS and HISS Data files
-# print('\nMerging Data Files...')
-# df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+print('\nMerging Data Files...')
+df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
 
 """ Import Synthetic Observations dataset """
 
-df = pd.read_csv('Data/synthetic_obs.csv')
+# df = pd.read_csv('Data/synthetic_obs.csv')
 
 
 """ Data Exploring """
@@ -106,11 +106,11 @@ df.RR = pd.to_numeric(df.RR)
 df.RR = df.RR.dropna()
 
 # Clean the PEWS Blood Pressure Data
-df.sBP = df.sBP.replace('\D+', np.NaN, regex=True)
-# TODO split BP using regex and create new column for the sBP data
-df['sBP'] = df.sBP
-df.sBP = pd.to_numeric(df.sBP)
-df.sBP = df.sBP.dropna()
+# df.sBP = df.sBP.replace('\D+', np.NaN, regex=True)
+# # TODO split BP using regex and create new column for the sBP data
+# df['sBP'] = df.sBP
+# df.sBP = pd.to_numeric(df.sBP)
+# df.sBP = df.sBP.dropna()
 
 
 
@@ -133,11 +133,11 @@ print('\n')
 
 """ Select the Blood Pressure Data """
 
-sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins']].values
-sBP = pd.DataFrame(sBP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins'])
-# print(sBP.head())
-print(sBP.describe())
-print('\n')
+# sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins']].values
+# sBP = pd.DataFrame(sBP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins'])
+# # print(sBP.head())
+# print(sBP.describe())
+# print('\n')
 
 
 """ Plot a histogram of all heart rates and add PEWS limits """
@@ -147,64 +147,95 @@ print('\n')
 # age_labels = list(range(18))
 
 # PLot the histogram
-plot4 = plt.figure(4)
+plot1= plt.figure(1)
 sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
 
 # Plot the thresholds - option 1 brute force
 # plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
 
-# generate the threshold tables
-
-score_0 = PM.generate_thresholds_table('nat_PEWS', 'HR', 0)
-score_1 = PM.generate_thresholds_table('nat_PEWS', 'HR', 1)
-score_2 = PM.generate_thresholds_table('nat_PEWS', 'HR', 2)
-score_4 = PM.generate_thresholds_table('nat_PEWS', 'HR', 4)
-
-# Plot the thresholds - option 2 computabale table
-plt.plot(score_0.age, score_0.lower, color='orange', linewidth=1)
-plt.plot(score_0.age, score_0.upper, color='orange', linewidth=1)
-
-plt.plot(score_1.age, score_1.lower, color='orange', linewidth=1)
-plt.plot(score_1.age, score_1.upper, color='orange', linewidth=1)
-
-# plt.fill_between('age', 'up_limit', 'lo_limit', color='orange', alpha=0.1)
-plt.plot(score_2.age, score_2.lower, color='orange', linewidth=1)
-plt.plot(score_2.age, score_2.upper, color='red', linewidth=1)
-
-# plt.plot(score_4.age, score_4.upper, color='red', linewidth=1)
-plt.plot(score_4.age, score_4.lower, color='red', linewidth=1)
+# generate the thresholds
+scores = [0, 1, 2, 4]
+for score in scores:
+    # generate the threshold tables
+    threshold = PM.generate_thresholds_table('nat_PEWS', 'HR', score)
+    # Plot the thresholds - option 2 computabale table
+    plt.plot(threshold.age, threshold.lower, color='orange', linewidth=0.5)
+    plt.plot(threshold.age, threshold.upper, color='orange', linewidth=0.5)
 
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
-# plt.legend()
-plt.show()
+plt.title('Heart rates with National PEWS Thresholds')
+plt.savefig('Nat_PEWS_HR.png')
 
-exit()
+# PLot the histogram
+plot2= plt.figure(2)
+sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
+
+# generate the threshold tables
+threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'HR', 0)
+
+# Plot the thresholds - option 2 computabale table
+plt.plot(threshold_UHL.age, threshold_UHL.lower, color='purple', linewidth=0.5)
+plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
+
+plt.xlabel('Age in Days')
+plt.ylabel('Heart Rates per min')
+plt.title('Heart Rates with UHL PEWS Thresholds')
+plt.savefig('UHL_PEWS_HR.png')
+
+
+# plt.show()
+
+# exit()
 
 
 """ Plot a histogram of all respiratory rates and add PEWS limits """
 
 # PLot the histogram
-plot5 = plt.figure(5)
+plot3 = plt.figure(3)
 sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=RR.admit_status
 
-# Plot the thresholds
-plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'RR'))
+# generate the thresholds
+scores = [0, 1, 2, 4]
+for score in scores:
+    # generate the threshold tables
+    threshold = PM.generate_thresholds_table('nat_PEWS', 'RR', score)
+    # Plot the thresholds - option 2 computabale table
+    plt.plot(threshold.age, threshold.lower, color='orange', linewidth=0.5)
+    plt.plot(threshold.age, threshold.upper, color='orange', linewidth=0.5)
 
 plt.xlabel('Age in days')
 plt.ylabel('Respiratory Rates per min)')
-# plt.show()
+plt.title('Respiratory Rates with National PEWS Thresholds')
+plt.savefig('Nat_PEWS_RR.png')
 
-# exit()
+# PLot the histogram
+plot4= plt.figure(4)
+sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=HR.admit_status
+
+# generate the threshold tables
+threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'RR', 0)
+
+# Plot the thresholds - option 2 computabale table
+plt.plot(threshold_UHL.age, threshold_UHL.lower, color='purple', linewidth=0.5)
+plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
+
+plt.xlabel('Age in Days')
+plt.ylabel('Respiratory Rates per min')
+plt.title('Respiratory Rates with UHL PEWS Thresholds')
+plt.savefig('UHL_PEWS_RR.png')
+plt.show()
+
+exit()
 
 """ Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
 
 # PLot the histogram
 plot6 = plt.figure(6)
-sns.scatterplot(x=sBP.age_in_days, y=sBP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+# sns.scatterplot(x=sBP.age_in_days, y=sBP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
 
 # Plot the thresholds
-plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
+# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
 
 plt.xlabel('Age in days')
 plt.ylabel('Systolic Blood Pressure in mmHg')
