@@ -29,8 +29,8 @@ import PEWS_models as PM
 """ Load the Sharepoint Files """
 
 # limited file load (faster)
-PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-HISS_df = FA.load_file('HISS_Data_1.xlsx')
+# PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
+# HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
 PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
@@ -63,7 +63,7 @@ print(df.describe())
 
 # print('\nDisplaying DataFrame column headers and data types:\n')
 # print(df.dtypes)
-# print('\n')
+print('\n')
 
 # exit()
 
@@ -75,8 +75,11 @@ PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
 # classify age according to age bins and add an Age bin column to the PEWS Dataframe
 df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
 
+# TODO change to select the data first before cleaning - faster
 
 """ Data Cleaning """
+
+# TODO clean data with a function
 
 # cs = ['age_in_days']
 #
@@ -96,29 +99,23 @@ df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
 # exit()
 
 # Clean the PEWS Heart Rate Data
-df.HR = df['HR'].replace('\D+', np.NaN, regex=True)  # replace text with null
+df.HR = df.HR.replace('\D+', np.NaN, regex=True)  # replace text with null
 df.HR = pd.to_numeric(df.HR)  # convert to python float/int
-df.HR = df['HR'].dropna()  # remove null values
+# df.HR = df.HR.dropna()  # remove null values
 
 # Clean the PEWS Respiratory Rate Data
 df.RR = df.RR.replace('\D+', np.NaN, regex=True)
 df.RR = pd.to_numeric(df.RR)
-df.RR = df.RR.dropna()
+# df.RR = df.RR.dropna()
 
 # Clean the PEWS Blood Pressure Data
-# df.sBP = df.sBP.replace('\D+', np.NaN, regex=True)
-# # TODO split BP using regex and create new column for the sBP data
-# df['sBP'] = df.sBP
-# df.sBP = pd.to_numeric(df.sBP)
-# df.sBP = df.sBP.dropna()
-
-
-
+df.BP = df.BP.replace('^\D', np.NaN, regex=True)
 
 """ Select the Heart Rate Data """
 
 HR = df[['HR', 'age_in_days', 'age', 'PEWS_bins']].values
 HR = pd.DataFrame(HR, columns=['HR', 'age_in_days', 'age', 'PEWS_bins'])
+HR.dropna(inplace=True)
 # print(HR.head())
 print(HR.describe())
 print('\n')
@@ -127,17 +124,32 @@ print('\n')
 
 RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins']].values
 RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins'])
+RR.dropna(inplace=True)
 # print(RR.head())
 print(RR.describe())
 print('\n')
 
 """ Select the Blood Pressure Data """
 
-# sBP = df[['sBP', 'age_in_days', 'age', 'PEWS_bins']].values
-# sBP = pd.DataFrame(sBP, columns=['sBP', 'age_in_days', 'age', 'PEWS_bins'])
-# # print(sBP.head())
-# print(sBP.describe())
-# print('\n')
+# pd.set_option('display.max_rows', None)
+# pd.set_option('display.width', None)
+
+# Select the BP data and split BP to systolic and diastolic BP columns
+
+BP = df[['BP', 'age_in_days', 'age', 'PEWS_bins']].values
+BP = pd.DataFrame(BP, columns=['BP', 'age_in_days', 'age', 'PEWS_bins'])
+BP_temp = BP['BP'].str.split('/', n=1, expand=True)
+BP['sBP'] = BP_temp[0]
+BP['dBP'] = BP_temp[1]
+BP.drop(columns=['BP'], inplace=True)
+BP.dropna(inplace=True)
+BP.sBP = BP.sBP.apply(pd.to_numeric)
+BP.dBP = BP.dBP.apply(pd.to_numeric)
+
+# print(BP)
+print(BP.describe())
+print('\n')
+
 
 
 """ Plot a histogram of all heart rates and add PEWS limits """
@@ -149,18 +161,19 @@ print('\n')
 # PLot the histogram
 plot1= plt.figure(1)
 sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
+plt.ylim([0, 250])
 
 # Plot the thresholds - option 1 brute force
 # plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
 
-# generate the thresholds
+# generate the thresholds - option 2 computabale table
 scores = [0, 1, 2, 4]
 for score in scores:
     # generate the threshold tables
     threshold = PM.generate_thresholds_table('nat_PEWS', 'HR', score)
-    # Plot the thresholds - option 2 computabale table
-    plt.plot(threshold.age, threshold.lower, color='orange', linewidth=0.5)
-    plt.plot(threshold.age, threshold.upper, color='orange', linewidth=0.5)
+    # Plot the thresholds
+    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
+    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
 
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
@@ -170,6 +183,7 @@ plt.savefig('Nat_PEWS_HR.png')
 # PLot the histogram
 plot2= plt.figure(2)
 sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
+plt.ylim([0, 250])
 
 # generate the threshold tables
 threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'HR', 0)
@@ -201,8 +215,8 @@ for score in scores:
     # generate the threshold tables
     threshold = PM.generate_thresholds_table('nat_PEWS', 'RR', score)
     # Plot the thresholds - option 2 computabale table
-    plt.plot(threshold.age, threshold.lower, color='orange', linewidth=0.5)
-    plt.plot(threshold.age, threshold.upper, color='orange', linewidth=0.5)
+    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
+    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
 
 plt.xlabel('Age in days')
 plt.ylabel('Respiratory Rates per min)')
@@ -210,7 +224,7 @@ plt.title('Respiratory Rates with National PEWS Thresholds')
 plt.savefig('Nat_PEWS_RR.png')
 
 # PLot the histogram
-plot4= plt.figure(4)
+plot4 = plt.figure(4)
 sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=HR.admit_status
 
 # generate the threshold tables
@@ -224,21 +238,49 @@ plt.xlabel('Age in Days')
 plt.ylabel('Respiratory Rates per min')
 plt.title('Respiratory Rates with UHL PEWS Thresholds')
 plt.savefig('UHL_PEWS_RR.png')
-plt.show()
+# # plt.show()
 
-exit()
+# exit()
 
 """ Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
 
 # PLot the histogram
-plot6 = plt.figure(6)
-# sns.scatterplot(x=sBP.age_in_days, y=sBP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+plot5 = plt.figure(5)
+sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+# plt.yticks(np.arange(0, 160, 10))
+plt.ylim([20, 180])
 
-# Plot the thresholds
-# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'sBP'))
+# generate the thresholds
+scores = [0, 1, 2, 4]
+for score in scores:
+    # generate the threshold tables
+    threshold = PM.generate_thresholds_table('nat_PEWS', 'sBP', score)
+    # Plot the thresholds - option 2 computabale table
+    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
+    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
 
 plt.xlabel('Age in days')
 plt.ylabel('Systolic Blood Pressure in mmHg')
+plt.title('Systolic Blood Pressure with National PEWS Thresholds')
+plt.savefig('Nat_PEWS_sBP.png')
+
+# PLot the histogram
+plot6 = plt.figure(6)
+sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+# plt.yticks(np.arange(0, 160, 10))
+plt.ylim([20, 180])
+
+# generate the threshold tables
+threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'sBP', 0)
+
+# Plot the thresholds - option 2 computabale table
+plt.plot(threshold_UHL.age, threshold_UHL.lower, color='red', linewidth=0.5)
+plt.plot(threshold_UHL.age, threshold_UHL.upper, color='red', linewidth=0.5)
+
+plt.xlabel('Age in days')
+plt.ylabel('Systolic Blood Pressure in mmHg')
+plt.title('Systolic Blood Pressure with UHL PEWS Thresholds')
+plt.savefig('UHL_PEWS_sBP.png')
 plt.show()
 
 exit()

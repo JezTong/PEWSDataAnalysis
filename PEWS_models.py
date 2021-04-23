@@ -225,28 +225,28 @@ class UHL_PEWS(object):
             [4, 'RR', 7, 10, 1, True],
             [4, 'RR', 0, 6, 1, False],
 
-            [1, 'sBP', 110, 250, 0, False],
+            [1, 'sBP', 110, 250, 'NA', False],
             [1, 'sBP', 71, 109, 0, True],
-            [1, 'sBP', 61, 70, 0, True],
-            [1, 'sBP', 51, 60, 0, False],
-            [1, 'sBP', 30, 50, 0, False],
+            [1, 'sBP', 61, 70, 'NA', True],
+            [1, 'sBP', 51, 60, 'NA', False],
+            [1, 'sBP', 30, 50, 'NA', False],
 
-            [2, 'sBP', 111, 250, 0, False],
+            [2, 'sBP', 111, 250, 'NA', False],
             [2, 'sBP', 81, 110, 0, True],
-            [2, 'sBP', 71, 80, 0, True],
-            [2, 'sBP', 61, 70, 0, False],
-            [2, 'sBP', 30, 60, 0, False],
+            [2, 'sBP', 71, 80, 'NA', True],
+            [2, 'sBP', 61, 70, 'NA', False],
+            [2, 'sBP', 30, 60, 'NA', False],
 
-            [3, 'sBP', 121, 250, 0, False],
+            [3, 'sBP', 121, 250, 'NA', False],
             [3, 'sBP', 91, 120, 0, True],
-            [3, 'sBP', 81, 90, 0, True],
-            [3, 'sBP', 71, 80, 0, False],
-            [3, 'sBP', 30, 70, 0, False],
+            [3, 'sBP', 81, 90, 'NA', True],
+            [3, 'sBP', 71, 80, 'NA', False],
+            [3, 'sBP', 30, 70, 'NA', False],
 
-            [4, 'sBP', 151, 250, 0, False],
+            [4, 'sBP', 151, 250, 'NA', False],
             [4, 'sBP', 101, 150, 0, True],
-            [4, 'sBP', 76, 100, 0, True],
-            [4, 'sBP', 30, 75, 0, False],
+            [4, 'sBP', 76, 100, 'NA', True],
+            [4, 'sBP', 30, 75, 'NA', False],
 
             [0, 'FiO2', 24, 100, 1, False],
             [0, 'FiO2', 20, 23, 0, False],
@@ -358,15 +358,13 @@ def generate_thresholds_table(model, parameter, score):
         table = table[['age', 'lower', 'upper']]
 
     else:
-        # temp_3 = table[table.index % 2 == 1].reset_index(drop=True)
-        # temp_3 = temp_3[['age', 'upper']]
-        # temp_3 = temp_3.rename(columns={'upper': 'lower'}, inplace=False)
         table = table[['age', 'lower', 'upper']]
-        # table = pd.merge(table, temp_3, how='right', on='age')
+        table.lower = table.lower.apply(lambda x: x-1)
 
     return table
 
 # print(generate_thresholds_table('UHL_PEWS', 'HR', 0))
+# print(generate_thresholds_table('UHL_PEWS', 'sBP', 0))
 # exit()
 
 # Function for looking up thresholds for a specified parameter of a specified PEWS model
