@@ -33,34 +33,33 @@ import PEWS_models as PM
 # HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
 # Load all 4 data files on Sharepoint
-PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
-PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
-PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
-
-HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
-HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
-HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+# PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
+# PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
+# PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
+#
+# HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
+# HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
+# HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
 # Merge the PEWS and HISS Data files
-print('\nMerging Data Files...')
-df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+# print('\nMerging Data Files...')
+# df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
 
 """ Import Synthetic Observations dataset """
 
-# df = pd.read_csv('Data/synthetic_obs.csv')
+df = pd.read_csv('Data/synthetic_obs.csv')
 
 
 """ Data Exploring """
-print('\nDisplaying DataFrame Summary:\n')
 
 # set pandas options to display all columns in a DataFrame
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 
 # explore and examine the DataFrame
+print('\nDisplaying DataFrame Summary:\n')
 print(df.describe())
 # print(df.head(10))
-
 # print('\nDisplaying DataFrame column headers and data types:\n')
 # print(df.dtypes)
 print('\n')
@@ -131,11 +130,7 @@ print('\n')
 
 """ Select the Blood Pressure Data """
 
-# pd.set_option('display.max_rows', None)
-# pd.set_option('display.width', None)
-
 # Select the BP data and split BP to systolic and diastolic BP columns
-
 BP = df[['BP', 'age_in_days', 'age', 'PEWS_bins']].values
 BP = pd.DataFrame(BP, columns=['BP', 'age_in_days', 'age', 'PEWS_bins'])
 BP_temp = BP['BP'].str.split('/', n=1, expand=True)
@@ -178,7 +173,7 @@ for score in scores:
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
 plt.title('Heart rates with National PEWS Thresholds')
-plt.savefig('Nat_PEWS_HR.png')
+# plt.savefig('Nat_PEWS_HR.png')
 
 # PLot the histogram
 plot2= plt.figure(2)
@@ -195,7 +190,7 @@ plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
 plt.title('Heart Rates with UHL PEWS Thresholds')
-plt.savefig('UHL_PEWS_HR.png')
+# plt.savefig('UHL_PEWS_HR.png')
 
 
 # plt.show()
@@ -221,7 +216,7 @@ for score in scores:
 plt.xlabel('Age in days')
 plt.ylabel('Respiratory Rates per min)')
 plt.title('Respiratory Rates with National PEWS Thresholds')
-plt.savefig('Nat_PEWS_RR.png')
+# plt.savefig('Nat_PEWS_RR.png')
 
 # PLot the histogram
 plot4 = plt.figure(4)
@@ -237,51 +232,51 @@ plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
 plt.xlabel('Age in Days')
 plt.ylabel('Respiratory Rates per min')
 plt.title('Respiratory Rates with UHL PEWS Thresholds')
-plt.savefig('UHL_PEWS_RR.png')
-# # plt.show()
-
-# exit()
-
-""" Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
-
-# PLot the histogram
-plot5 = plt.figure(5)
-sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
-# plt.yticks(np.arange(0, 160, 10))
-plt.ylim([20, 180])
-
-# generate the thresholds
-scores = [0, 1, 2, 4]
-for score in scores:
-    # generate the threshold tables
-    threshold = PM.generate_thresholds_table('nat_PEWS', 'sBP', score)
-    # Plot the thresholds - option 2 computabale table
-    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
-    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
-
-plt.xlabel('Age in days')
-plt.ylabel('Systolic Blood Pressure in mmHg')
-plt.title('Systolic Blood Pressure with National PEWS Thresholds')
-plt.savefig('Nat_PEWS_sBP.png')
-
-# PLot the histogram
-plot6 = plt.figure(6)
-sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
-# plt.yticks(np.arange(0, 160, 10))
-plt.ylim([20, 180])
-
-# generate the threshold tables
-threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'sBP', 0)
-
-# Plot the thresholds - option 2 computabale table
-plt.plot(threshold_UHL.age, threshold_UHL.lower, color='red', linewidth=0.5)
-plt.plot(threshold_UHL.age, threshold_UHL.upper, color='red', linewidth=0.5)
-
-plt.xlabel('Age in days')
-plt.ylabel('Systolic Blood Pressure in mmHg')
-plt.title('Systolic Blood Pressure with UHL PEWS Thresholds')
-plt.savefig('UHL_PEWS_sBP.png')
+# plt.savefig('UHL_PEWS_RR.png')
 plt.show()
+
+exit()
+
+# """ Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
+#
+# # PLot the histogram
+# plot5 = plt.figure(5)
+# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+# # plt.yticks(np.arange(0, 160, 10))
+# plt.ylim([20, 180])
+#
+# # generate the thresholds
+# scores = [0, 1, 2, 4]
+# for score in scores:
+#     # generate the threshold tables
+#     threshold = PM.generate_thresholds_table('nat_PEWS', 'sBP', score)
+#     # Plot the thresholds - option 2 computabale table
+#     plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
+#     plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
+#
+# plt.xlabel('Age in days')
+# plt.ylabel('Systolic Blood Pressure in mmHg')
+# plt.title('Systolic Blood Pressure with National PEWS Thresholds')
+# plt.savefig('Nat_PEWS_sBP.png')
+#
+# # PLot the histogram
+# plot6 = plt.figure(6)
+# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
+# # plt.yticks(np.arange(0, 160, 10))
+# plt.ylim([20, 180])
+#
+# # generate the threshold tables
+# threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'sBP', 0)
+#
+# # Plot the thresholds - option 2 computabale table
+# plt.plot(threshold_UHL.age, threshold_UHL.lower, color='red', linewidth=0.5)
+# plt.plot(threshold_UHL.age, threshold_UHL.upper, color='red', linewidth=0.5)
+#
+# plt.xlabel('Age in days')
+# plt.ylabel('Systolic Blood Pressure in mmHg')
+# plt.title('Systolic Blood Pressure with UHL PEWS Thresholds')
+# plt.savefig('UHL_PEWS_sBP.png')
+# plt.show()
 
 exit()
 
