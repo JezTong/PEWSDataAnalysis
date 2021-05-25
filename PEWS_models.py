@@ -409,5 +409,5 @@ def generate_lines(model, parameter, color = 'red', linewidth = 1):
 # print(generate_model_table('UHL_PEWS'))
 # print('\n')
 # print(generate_model_table('nat_PEWS'))
-# generate_model_table('nat_PEWS').to_csv('nat_PEWS_limits.csv', index=False)
-# generate_model_table('UHL_PEWS').to_csv('UHL_PEWS_limits.csv', index=False)
+# generate_model_table('nat_PEWS').to_csv('data/nat_PEWS_limits.csv', index=False)
+# generate_model_table('UHL_PEWS').to_csv('data/UHL_PEWS_limits.csv', index=False)

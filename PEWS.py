@@ -7,333 +7,376 @@
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
-                    io, Numpy, Pandas, Mathplotlib, Seaborn,
-                    Office365-REST-Python-Client 2.3.1 https://pypi.org/project/Office365-REST-Python-Client/
+                    io, Numpy, Pandas, Mathplotlib, Seaborn
 """
-
-#TODO Create a virtual Python environment and requirements.txt to allow installation of necessary packages using: python -m pip install -r requirements.txt
 
 # Import Python Modules
 import numpy as np  # pip install numpy
 import pandas as pd  # pip install pandas
 import matplotlib.pyplot as plt  # pip install matplotlib
-from matplotlib.collections import LineCollection
 import seaborn as sns  # pip install seaborn
-
-# code to access data files on sharepoint
-import File_Access as FA
+import statsmodels.api as sm # pip install statsmodels
 
 # Import PEWS models
 import PEWS_models as PM
 
-""" Load the Sharepoint Files """
+""" Load Data Files """
 
-# limited file load (faster)
-# PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
-# HISS_df = FA.load_file('HISS_Data_1.xlsx')
+def load_sharepoint_file(file_scope='half'):
+    # function to load PEWS data file from Sharepoint account
+    # file_scope: 'half' = limited (faster), 'full' = load full database
 
-# Load all 4 data files on Sharepoint
-# PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
-# PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
-# PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
-#
-# HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
-# HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
-# HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+    # code to access data files on Sharepoint
+    import File_Access as FA
 
-# Merge the PEWS and HISS Data files
-# print('\nMerging Data Files...')
-# df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+    if file_scope == 'half':
+        # load 2 of 4 data files on Sharepoint
+        PEWS_df = FA.load_file('PEWS_Data_1.xlsx')
+        HISS_df = FA.load_file('HISS_Data_1.xlsx')
 
-""" Import Synthetic Observations dataset """
+    else:
+        # Load all 4 data files on Sharepoint
+        PEWS_df_1 = FA.load_file('PEWS_Data_1.xlsx')
+        PEWS_df_2 = FA.load_file('PEWS_Data_2.xlsx')
+        PEWS_df = pd.concat([PEWS_df_1, PEWS_df_2])
 
-df = pd.read_csv('Data/synthetic_obs.csv')
+        HISS_df_1 = FA.load_file('HISS_Data_1.xlsx')
+        HISS_df_2 = FA.load_file('HISS_Data_2.xlsx')
+        HISS_df = pd.concat([HISS_df_1, HISS_df_2])
+
+        # Merge the PEWS and HISS Data files
+        print('\nMerging Data Files...')
+        df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
+        return df
 
 
-""" Data Exploring """
+def load_synthetic_data():
+    # function to import Synthetic Observations dataset
+    df = pd.read_csv('Data/synthetic_obs.csv')
+    return df
 
-# set pandas options to display all columns in a DataFrame
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', None)
 
-# explore and examine the DataFrame
-print('\nDisplaying DataFrame Summary:\n')
-print(df.describe())
-# print(df.head(10))
-# print('\nDisplaying DataFrame column headers and data types:\n')
-# print(df.dtypes)
-print('\n')
+def load_saved_data(parameter='HR'):
+    # function to load previously processed and saved data (rapid file load for code development)
+    df = pd.read_csv(f'data/{parameter}.csv')
+    df.rename(columns={'age':'age_in_days'}, inplace=True)
+    return df
 
-# exit()
 
-""" Bin Data by age """
+""" Initial Data Explore """
 
-PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
+
+def explore_data(df):
+    # function to explore the raw dataframe
+    print('\nDisplaying DataFrame Summary:\n')
+
+    # set pandas options to display all columns in a DataFrame
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+
+    # explore and examine the DataFrame
+    print(df.describe())
+    # print(df.columns)
+    # print(df.head(10))
+    print('\n')
+
+
+""" Data Processing """
+
+def select_parameter(df, parameter):
+    # creates a new dataframe with the single parameter from the PEWS dataframe
+    # renames the columns as age and parameter name
+    parameter_df = df[['age_in_days', parameter]].values
+    parameter_df = pd.DataFrame(parameter_df, columns=['age', parameter])
+    print(f'\n...{parameter} DataFrame created...')
+    return parameter_df
+
+
+# TODO this is not quite ready yet
+def calculate_decimal_age(parameter_df):
+    # converts age in days to decimal age
+    # drops age_in_days column
+    # reorders the columns - important for later functions to work
+    parameter_df['age'] = parameter_df['age_in_days'] / 365.25
+    parameter_df.drop(columns=['age_in_days'], inplace=True)
+    par_name = parameter_df.columns[1]
+    parameter_df = parameter_df[['age', par_name]]
+    print('\n...Converted age in days to decimal age...')
+    print(parameter_df.head(10))
+    return parameter_df
+
+
+def split_BP(parameter_df):
+    # if the parameter is BP, splits the BP data into systolic BP and diastolic BP columns.
+    # otherwise does not alter the data
+    if 'BP' in parameter_df:
+        BP = parameter_df['BP'].str.split('/', n=1, expand=True)
+        parameter_df['sBP'] = BP[0]
+        # parameter_df['dBP'] = BP[1]
+        parameter_df.drop(columns=['BP'], inplace=True)
+        print(f'\n...Extracting sBP from BP column...')
+        return parameter_df
+    else:
+        return parameter_df
+
+
+def clean_data(parameter_df):
+    # takes the parameter dataframe and converts text to NaN valuse
+    # removes missing values
+    # converts data types from objects to integers
+    par_name = parameter_df.columns[1]
+    parameter_df[par_name] = parameter_df[par_name].replace('\D+', np.NaN, regex=True)
+    parameter_df.dropna(inplace=True)
+    for i in list(parameter_df):
+        parameter_df[i] = parameter_df[i].astype(int)
+    print(f'\n...{par_name} Data Cleaning Complete...')
+    return parameter_df
+
+
+def print_data(parameter_df):
+    # prints the parameter dataframe and its summary statistics
+    par_name = parameter_df.columns[1]
+    # print(f'\n{par_name} Dataframe:\n')
+    # print(parameter_df)
+    # print(parameter_df.dtypes)
+    print(f'\nSummary Statistics for {par_name}:\n')
+    print(parameter_df.describe())
+    return parameter_df
+
+
+def bin_by_age(parameter_df, bins=54):
+    # categorises the parameter data by time intervals
+    # number of bins for specific time intervals: 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
+    par_name = parameter_df.columns[1]
+    parameter_df['bin'] = pd.cut(parameter_df.age, bins=bins)
+    print(f'\n...{par_name} data binned by age intervals...')
+    print(parameter_df.head(10))
+    return parameter_df
+
+
+def color_selector(par_name):
+    # function to select a color based on the parameter
+    # TODO switch to list comprehension
+    if par_name == 'HR':
+        return 'blue'
+    elif par_name == 'RR':
+        return 'green'
+    else:
+        return 'mediumpurple'
+
+
+def format_plot(par_name, chart_type):
+    # function to add chart title, axis labels, show plot and save plot as .png
+    plt.xlabel('Age in Days')
+    plt.ylabel(f'{par_name}')
+    plt.title(f'{par_name} in Children')
+    plt.savefig(f'plots/{par_name}_{chart_type}_plot.png')
+    plt.show()
+
+
+def plot_scatter(parameter_df):
+    # function to plot a scatter plot of the parameter data
+    par_name = parameter_df.columns[1]
+    chart_type = 'scatter'
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    format_plot(par_name, chart_type)
+    return parameter_df
+
+
+""" Calculate the centiles """
+
+
+def linear_regression(parameter_df):
+    # function to plot a linear regression of the parameter
+    par_name = parameter_df.columns[1]
+    chart_type = 'regression'
+    centile_df = parameter_df
+
+    centile_df['median'] = centile_df[par_name].rolling(1).median()
+    print(centile_df.head())
+
+    model = sm.OLS.from_formula('median ~ age', data=centile_df).fit()
+    print('\n')
+    print(model.params)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+
+    # ax = plt.plot(centile_df.age, quantile_50,  color='red', linewidth=1)
+
+    ax = plt.plot(centile_df.age, model.params[0] + model.params[1] * centile_df['median'], color='green', linewidth=1)
+
+    format_plot(par_name, chart_type)
+    return parameter_df
+
+
+
+def plot_centiles(parameter_df, lower_quintile=0.05, mid_quintile=0.5, upper_quintile=0.95):
+    # need to plot scatter plot of the parameter first
+    par_name = parameter_df.columns[1]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.lmplot(x='age', y=par_name, data=parameter_df, order=2)
+
+    # create a centile dataframe to calculate the centiles
+    centile_df = parameter_df
+    # bin the HR data by age
+    bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
+    # classify age according to age bins and add an Age bin column to the PEWS Dataframe
+    centile_df['bin'] = pd.cut(centile_df.age, bins=bins)
+    # calculate the centiles for HR
+    quantile_50 = centile_df.groupby('bin', as_index=False, sort=True).quantile(0.5)  # 50th centiles
+    quantile_50 = pd.DataFrame(quantile_50)
+
+    # plot the centile line
+    ax = plt.plot(centile_df.age, quantile_50,  color='red', linewidth=1)
+
+    format_plot(par_name)
+    return parameter_df
+
+
+def save_as_csv(parameter_df):
+    # saves the parameter dataframe as a csv file for quick analysis later
+    par_name = parameter_df.columns[1]
+    parameter_df.to_csv(f'data/{par_name}.csv')
+    return parameter_df
+
+
+""" Sequential Function Call """
+
+parameter_list = ['HR']
+for parameter in parameter_list:
+    # takes the dataframe and processes in sequence
+    df = load_saved_data(parameter)
+    process = (
+        select_parameter(df, parameter)
+        .pipe(print_data)
+        .pipe(linear_regression)
+
+    )
+
+exit()
+
+# Quick access for .pipe functions (copy & paste these into process above)
+        # .pipe(print_data)
+        # .pipe(split_BP)
+        # .pipe(clean_data)
+        # .pipe(print_data)
+        # .pipe(bin_by_age)
+        # .pipe(plot_scatter)
+        # .pipe(plot_centiles)
+        # .pipe(linear_regression)
+        # .pipe(save_as_csv)
+
+
+
+
+
+""" Test Code """
+# the following is test code used for development and not used in analysis
+
+
+# bin the HR data by age
+bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
+# [np.arange(0, 6574, 28)]  # Age bins according to PEWS chart categories
+# bin_labels = [np.arange(0, len(bins))]  # Age bin category labels
+
+# print('\nbins\n')
+# print(bins)
+# print(bin_labels)
 
 # classify age according to age bins and add an Age bin column to the PEWS Dataframe
-df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
+df_HR['bin'] = pd.cut(df_HR.age, bins=bins)
+# print('\nHR Dataframe 2\n')
+# print(df_HR)
 
-# TODO change to select the data first before cleaning - faster
+# calculate the mean values for each age bin
+HR_mean = df_HR.groupby('bin', as_index=False, sort=True).mean()
+HR_mean = pd.DataFrame(HR_mean, columns=['age', 'bin', 'HR'])
+# print('\nHR means\n')
+# print(HR_mean)
 
-""" Data Cleaning """
+# TODO figure out how to plot the standard deviation
 
-# TODO clean data with a function
+HR_std = df_HR.groupby('bin', as_index=False, sort=True).std()
+HR_std = pd.DataFrame(HR_std)  # , columns=['age', 'bin', 'HR']
+print('\nHR standard deviations\n')
+print(HR_std)
 
-# cs = ['age_in_days']
-#
-# def clean_data(df, parameter, column_selection):
-#     temp_df = df[[parameter, column_selection]]
-#     print(temp_df.describe())
-#     temp_df[parameter] = df[parameter].replace('\D+', np.NaN, regex=True)  # replace text with null
-#     temp_df[parameter] = pd.to_numeric(temp_df[parameter])  # convert to python float/int
-#     temp_df[parameter] = temp_df[parameter].dropna()  # remove null values
-#     print(temp_df.describe())
-#     return temp_df
-#
-# HR = clean_data(df, 'HR', cs)
-#
-# print(HR.describe())
-# print(HR)
-# exit()
+# TODO match up centiles with the age markers better
 
-# Clean the PEWS Heart Rate Data
-df.HR = df.HR.replace('\D+', np.NaN, regex=True)  # replace text with null
-df.HR = pd.to_numeric(df.HR)  # convert to python float/int
-# df.HR = df.HR.dropna()  # remove null values
+# calculate the centiles for HR
+HR_qtiile_95 = df_HR.groupby('bin', as_index=False, sort=True).quantile(0.95)  # 95th centiles
+HR_qtiile_95 = pd.DataFrame(HR_qtiile_95)
 
-# Clean the PEWS Respiratory Rate Data
-df.RR = df.RR.replace('\D+', np.NaN, regex=True)
-df.RR = pd.to_numeric(df.RR)
-# df.RR = df.RR.dropna()
+HR_qtiile_5 = df_HR.groupby('bin', as_index=False, sort=True).quantile(0.05)  # 5th centiles
+HR_qtiile_5 = pd.DataFrame(HR_qtiile_5)
 
-# Clean the PEWS Blood Pressure Data
-df.BP = df.BP.replace('^\D', np.NaN, regex=True)
+# print('\nHR centiles\n')
+# print(HR_qtiile_5)
+# print(HR_qtiile_95)
 
-""" Select the Heart Rate Data """
 
-HR = df[['HR', 'age_in_days', 'age', 'PEWS_bins']].values
-HR = pd.DataFrame(HR, columns=['HR', 'age_in_days', 'age', 'PEWS_bins'])
-HR.dropna(inplace=True)
-# print(HR.head())
-print(HR.describe())
-print('\n')
+centile_df['average'] = centile_df[par_name].rolling(1).mean()
+centile_df['average'] = centile_df[par_name].groupby(centile_df.age, sort=True).quantile(0.5)
+centile_df = pd.DataFrame(centile_df)
 
-""" Select the Respiratory Rate Data """
+centile_df['age'] = pd.cut(centile_df.age, bins=28)
+centile_df = centile_df.groupby('bin', as_index=False, sort=True).mean()
+centile_df = pd.DataFrame(centile_df, columns=['age', 'bin', 'HR'])
 
-RR = df[['RR', 'age_in_days', 'age', 'PEWS_bins']].values
-RR = pd.DataFrame(RR, columns=['RR', 'age_in_days', 'age', 'PEWS_bins'])
-RR.dropna(inplace=True)
-# print(RR.head())
-print(RR.describe())
-print('\n')
+# centile_df['median'] = centile_df[par_name].rolling(window).median()
+# centile_df['P5'] = centile_df[par_name].rolling(window).quantile(0.05)
+# centile_df['P95'] = centile_df[par_name].rolling(window).quantile(0.95)
+# print(centile_df.head(240))
 
-""" Select the Blood Pressure Data """
-
-# Select the BP data and split BP to systolic and diastolic BP columns
-BP = df[['BP', 'age_in_days', 'age', 'PEWS_bins']].values
-BP = pd.DataFrame(BP, columns=['BP', 'age_in_days', 'age', 'PEWS_bins'])
-BP_temp = BP['BP'].str.split('/', n=1, expand=True)
-BP['sBP'] = BP_temp[0]
-BP['dBP'] = BP_temp[1]
-BP.drop(columns=['BP'], inplace=True)
-BP.dropna(inplace=True)
-BP.sBP = BP.sBP.apply(pd.to_numeric)
-BP.dBP = BP.dBP.apply(pd.to_numeric)
-
-# print(BP)
-print(BP.describe())
-print('\n')
+# plot the centile lines
+# ax = sns.lineplot(x=centile_df['age'], y=centile_df['median'].median(), data=centile_df, color='red', label='median')
+# ax = sns.lineplot(x=centile_df['age'], y=centile_df['P5'], data=centile_df, color='red', label='P5')
+# ax = sns.lineplot(x=centile_df['age'], y=centile_df['P95'], data=centile_df, color='red', label='P95')
+# # colour in the area between upper and lower centiles
+#plt.fill_between(centile_df['age'], centile_df['P5'], centile_df['P5'], color='red', alpha=0.05)
 
 
 
-""" Plot a histogram of all heart rates and add PEWS limits """
 
-# age_ticks = np.arange(0, 6570, 365).tolist()
-# # print(age_ticks)
-# age_labels = list(range(18))
+# plot the HR data
+sns.scatterplot(x=df_HR.age, y=df_HR.HR, alpha=0.2, s=5)
 
-# PLot the histogram
-plot1= plt.figure(1)
-sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
+# plot the HR mean and centiles for age
+sns.lineplot(x=HR_qtiile_95.age, y=HR_qtiile_95.HR, data=HR_qtiile_95, linewidth=1, ls='--', color='red',
+             label='95th centile')
+sns.lineplot(x=HR_mean.age, y=HR_mean.HR, data=HR_mean, linewidth=1, color='red', label='mean')
+sns.lineplot(x=HR_qtiile_5.age, y=HR_qtiile_5.HR, data=HR_qtiile_5, linewidth=1, ls='--', color='red',
+             label='5th centile')
+
+# colour in the area between upper and lower centiles
+plt.fill_between(HR_mean.age, HR_qtiile_5.HR, HR_qtiile_95.HR, color='red', alpha=0.05)
+
 plt.ylim([0, 250])
 
-# Plot the thresholds - option 1 brute force
-# plt.gca().add_collection(PM.generate_lines('UHL_PEWS', 'HR'))
-
-# generate the thresholds - option 2 computabale table
-scores = [0, 1, 2, 4]
-for score in scores:
-    # generate the threshold tables
-    threshold = PM.generate_thresholds_table('nat_PEWS', 'HR', score)
-    # Plot the thresholds
-    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
-    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
-
+# plot the figure labels
 plt.xlabel('Age in Days')
 plt.ylabel('Heart Rates per min')
-plt.title('Heart rates with National PEWS Thresholds')
-# plt.savefig('Nat_PEWS_HR.png')
-
-# PLot the histogram
-plot2= plt.figure(2)
-sns.scatterplot(x=HR.age_in_days, y=HR.HR, alpha=0.2, s=5)  #hue=HR.admit_status
-plt.ylim([0, 250])
-
-# generate the threshold tables
-threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'HR', 0)
-
-# Plot the thresholds - option 2 computabale table
-plt.plot(threshold_UHL.age, threshold_UHL.lower, color='purple', linewidth=0.5)
-plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
-
-plt.xlabel('Age in Days')
-plt.ylabel('Heart Rates per min')
-plt.title('Heart Rates with UHL PEWS Thresholds')
-# plt.savefig('UHL_PEWS_HR.png')
-
-
-# plt.show()
-
-# exit()
-
-
-""" Plot a histogram of all respiratory rates and add PEWS limits """
-
-# PLot the histogram
-plot3 = plt.figure(3)
-sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=RR.admit_status
-
-# generate the thresholds
-scores = [0, 1, 2, 4]
-for score in scores:
-    # generate the threshold tables
-    threshold = PM.generate_thresholds_table('nat_PEWS', 'RR', score)
-    # Plot the thresholds - option 2 computabale table
-    plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
-    plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
-
-plt.xlabel('Age in days')
-plt.ylabel('Respiratory Rates per min)')
-plt.title('Respiratory Rates with National PEWS Thresholds')
-# plt.savefig('Nat_PEWS_RR.png')
-
-# PLot the histogram
-plot4 = plt.figure(4)
-sns.scatterplot(x=RR.age_in_days, y=RR.RR, alpha=0.2, s=5, color='mediumseagreen' )  #hue=HR.admit_status
-
-# generate the threshold tables
-threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'RR', 0)
-
-# Plot the thresholds - option 2 computabale table
-plt.plot(threshold_UHL.age, threshold_UHL.lower, color='purple', linewidth=0.5)
-plt.plot(threshold_UHL.age, threshold_UHL.upper, color='purple', linewidth=0.5)
-
-plt.xlabel('Age in Days')
-plt.ylabel('Respiratory Rates per min')
-plt.title('Respiratory Rates with UHL PEWS Thresholds')
-# plt.savefig('UHL_PEWS_RR.png')
+plt.title('Heart Rate Centiles (1 year averages)')
+plt.legend(loc='upper right')
+plt.savefig('HR_centiles.png')
 plt.show()
 
 exit()
 
-# """ Plot a histogram of all Systolic Blood Pressure data and add PEWS limits """
-#
-# # PLot the histogram
-# plot5 = plt.figure(5)
-# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
-# # plt.yticks(np.arange(0, 160, 10))
-# plt.ylim([20, 180])
-#
-# # generate the thresholds
-# scores = [0, 1, 2, 4]
-# for score in scores:
-#     # generate the threshold tables
-#     threshold = PM.generate_thresholds_table('nat_PEWS', 'sBP', score)
-#     # Plot the thresholds - option 2 computabale table
-#     plt.plot(threshold.age, threshold.lower, color='red', linewidth=0.5)
-#     plt.plot(threshold.age, threshold.upper, color='red', linewidth=0.5)
-#
-# plt.xlabel('Age in days')
-# plt.ylabel('Systolic Blood Pressure in mmHg')
-# plt.title('Systolic Blood Pressure with National PEWS Thresholds')
-# plt.savefig('Nat_PEWS_sBP.png')
-#
-# # PLot the histogram
-# plot6 = plt.figure(6)
-# sns.scatterplot(x=BP.age_in_days, y=BP.sBP, alpha=0.2, s=5, color='mediumpurple' )  #hue=sBP.admit_status
-# # plt.yticks(np.arange(0, 160, 10))
-# plt.ylim([20, 180])
-#
-# # generate the threshold tables
-# threshold_UHL = PM.generate_thresholds_table('UHL_PEWS', 'sBP', 0)
-#
-# # Plot the thresholds - option 2 computabale table
-# plt.plot(threshold_UHL.age, threshold_UHL.lower, color='red', linewidth=0.5)
-# plt.plot(threshold_UHL.age, threshold_UHL.upper, color='red', linewidth=0.5)
-#
-# plt.xlabel('Age in days')
-# plt.ylabel('Systolic Blood Pressure in mmHg')
-# plt.title('Systolic Blood Pressure with UHL PEWS Thresholds')
-# plt.savefig('UHL_PEWS_sBP.png')
-# plt.show()
+# sort the dataframe by age_in_days
+HR = HR.sort_values('age_in_days', ascending=True)
+print(HR.head())
 
-exit()
+# select a number samples as a sample window
+band = 50
 
+# take the window and work out its mean and standard deviation
+test = HR.iloc[0:49].mean()
+print(test)
 
+# calculate the sample size for this window (determine what the minimum sample size should be)
 
-""" Data Analysis """
-
-# Get the Heart rate data for each PEWS Age bin
-HR_PEWS_bin_0 = df.loc[df.PEWS_bins == '0-11m']
-HR_PEWS_bin_1 = df.loc[df.PEWS_bins == '1-4y']
-HR_PEWS_bin_2 = df.loc[df.PEWS_bins == '5-11y']
-HR_PEWS_bin_3 = df.loc[df.PEWS_bins == '>12']
-
-HR_PEWS_series = [HR_PEWS_bin_0.HR, HR_PEWS_bin_1.HR, HR_PEWS_bin_2.HR, HR_PEWS_bin_3.HR]
-
-# Plot the HR by PEWS age bins as a histogram
-Title = 'Heart rate distribution for 4 age groups'
-Range = (50, 200)
-# Range = (0, 250)
-fig1 = plt.figure(1)
-for i in range(len(HR_PEWS_series)):
-    plt.hist(HR_PEWS_series[i], range=Range, bins=50, alpha=0.4, label=PEWS_bin_labels[i])
-plt.title(Title)
-plt.legend()
-# plt.show()
-
-# Boxplot of Heart Rate for 4 age bins
-fig2 = plt.figure(2)
-plt.title('Heart rates for 4 different age groups')
-sns.boxplot(x=df.PEWS_bins, y=df.HR, width=0.3)
-# plt.show()
-
-# Boxplots of Heart Rate for each age
-fig3 = plt.figure(3)
-plt.title('Heart rate range at different ages')
-sns.boxplot(x=df.age, y=df.HR, width=0.2)
-plt.show()
-
-""" Experimenting with adding centiles in plots"""
-
-# HR_centiles = np.quantile(df['HR'], [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95])
-# centile_line_color = ['red', 'orange', 'yellow', 'green', 'yellow', 'orange', 'red']
-# plt.clf()
-# plt.hist(df['HR'], range = (0, 250), bins = 25, edgecolor = 'white')
-
-# for n in [0, 1, 2, 3, 4, 5, 6]:
-#   plt.axvline(x = HR_centiles[n], color = centile_line_color[n])
-
-# for centile in HR_centiles:
-#   plt.axvline(x = centile, color = 'red')
-
-# plt.title('Heart Rate')
-# plt.show()
-
-
-
-
-
-
-
+# calculate the centile for each age using the 'window' with 'acceptable limits'

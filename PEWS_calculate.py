@@ -36,16 +36,3 @@ print(df.describe())
 
 # activate PEWS threshold
 
-""" Calculate the centiles """
-
-# take in a DataFrame of the parameter in question
-
-# create a new column for the centile
-
-# select an an age band 'window'
-
-# take the window and work out its mean and standard deviation
-
-# calculate the sample size for this window (determine what the minimum sample size should be)
-
-# calculate the centile for each age using the 'window' with 'acceptable limits'
