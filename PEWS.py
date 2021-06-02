@@ -81,6 +81,7 @@ def explore_data(df):
     # print(df.columns)
     # print(df.head(10))
     print('\n')
+    return(df)
 
 
 """ Data Processing """
@@ -90,7 +91,7 @@ def select_parameter(df, parameter):
     # creates a new dataframe with the single parameter from the PEWS dataframe
     # renames the columns as age and parameter name
     parameter_df = df[['age_in_days', parameter]].values
-    parameter_df = pd.DataFrame(parameter_df, columns=['age', parameter])
+    parameter_df = pd.DataFrame(parameter_df, columns=['age_in_days', parameter])
     print(f'\n...{parameter} DataFrame created...')
     return parameter_df
 
@@ -125,8 +126,8 @@ def clean_data(parameter_df):
 
 def convert_decimal_age(parameter_df):
     # converts the age in days to a decimal age
-    # requires the 'age_in_days' header to be re-named 'age' first. This is done by select_parameter() function
-    parameter_df['age'] = parameter_df['age'] / 365.25
+    parameter_df['age'] = parameter_df['age_in_days'] / 365.25
+    parameter_df.drop(['age_in_days'], axis=1)
     print('\n...Converted age in days to decimal age...')
     # print(parameter_df.head(10))
     return parameter_df
@@ -154,6 +155,8 @@ def color_selector(par_name):
         return 'royalblue'
     elif par_name == 'RR':
         return 'mediumseagreen'
+    elif par_name == 'sats':
+        return 'mediumturquoise'
     else:
         return 'mediumpurple'
 
@@ -170,7 +173,7 @@ def format_plot(par_name, chart_type, ax):
 def plot_scatter(parameter_df):
     # function to plot a scatter plot of the parameter data
     par_name = parameter_df.columns[1]
-    chart_type = 'scatter'
+    chart_type = 'Scatter plot'
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
     format_plot(par_name, chart_type, ax)
@@ -344,7 +347,7 @@ def poly_quantile_regression(parameter_df):
         y = get_y(models.a[i], models.b[i], models.c[i])
         ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='upper right')
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
     format_plot(par_name, chart_type, ax)
     return parameter_df
 
@@ -362,35 +365,36 @@ def save_as_csv(parameter_df):
 """ Sequential Function Call """
 
 # use this for analysing files on Sharepoint
-parameter_list = ['HR', 'RR', 'BP']
-for parameter in parameter_list:
-    # takes the dataframe and processes in sequence
-    df = load_sharepoint_file(file_scope='half')
-    process = (
-
-        select_parameter(df, parameter)
-            .pipe(split_BP)
-            .pipe(clean_data)
-            .pipe(convert_decimal_age)
-            .pipe(print_data)
-            .pipe(plot_scatter)
-            .pipe(poly_quantile_regression)
-            .pipe(save_as_csv)
-    )
-
-# use this for testing - takes in pre-prepared data set
-# parameter_list = ['HR', 'RR', 'sBP']
+# TODO change parameter abbreviations to full descriptions
+# parameter_list = ['HR', 'RR', 'BP', 'sats']
 # for parameter in parameter_list:
 #     # takes the dataframe and processes in sequence
-#     df = load_saved_data(parameter)
+#     df = load_sharepoint_file(file_scope='half')
 #     process = (
 #
 #         select_parameter(df, parameter)
-#         .pipe(convert_decimal_age)
-#         .pipe(print_data)
-#         .pipe(quantile_regression)
-#
-#     )
+#             .pipe(split_BP)
+#             .pipe(clean_data)
+#             .pipe(convert_decimal_age)
+#             .pipe(print_data)
+#             .pipe(plot_scatter)
+#             .pipe(poly_quantile_regression)
+#             .pipe(save_as_csv)
+    )
+
+# use this for testing - takes in pre-prepared data set
+parameter_list = ['HR', 'RR', 'sBP', 'sats']
+for parameter in parameter_list:
+    # takes the dataframe and processes in sequence
+    df = load_saved_data(parameter)
+    process = (
+
+        select_parameter(df, parameter)
+        .pipe(convert_decimal_age)
+        .pipe(print_data)
+        .pipe(poly_quantile_regression)
+
+    )
 
 
 # use this for analysing synthetic data set
