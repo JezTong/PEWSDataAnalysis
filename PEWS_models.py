@@ -16,7 +16,7 @@ from matplotlib.collections import LineCollection
 
 """ National PEWS model thresholds """
 
-class nat_PEWS(object):
+class NPEWS(object):
 
     thresholds = []
 
@@ -301,8 +301,8 @@ def generate_model_table(model):
     if model == 'UHL_PEWS':
         table = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
 
-    elif model == 'nat_PEWS':
-        table = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
+    elif model == 'NPEWS':
+        table = pd.DataFrame(NPEWS().thresholds, columns=columns)
 
     table.age_range = table.age_range.apply(lambda x: age_bin_labels[x])
     table = table[['age_range', 'parameter', 'lower_lim', 'upper_lim', 'score']]
@@ -318,8 +318,8 @@ def generate_thresholds_table(model, parameter, score):
     if model == 'UHL_PEWS':
         temp_1 = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
 
-    elif model == 'nat_PEWS':
-        temp_1 = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
+    elif model == 'NPEWS':
+        temp_1 = pd.DataFrame(NPEWS().thresholds, columns=columns)
 
     # limit the DataFrame to the parameters in question
     temp_1 = temp_1.loc[(temp_1.parameter == parameter) & (temp_1['score'] == score)].reset_index(drop=True)
@@ -374,8 +374,8 @@ def get_thresolds(model, parameter):
     if model == 'UHL_PEWS':
         thresholds = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
 
-    elif model == 'nat_PEWS':
-        thresholds = pd.DataFrame(nat_PEWS().thresholds, columns=columns)
+    elif model == 'NPEWS':
+        thresholds = pd.DataFrame(NPEWS().thresholds, columns=columns)
 
     limits = thresholds.loc[(thresholds['var'] == parameter) & (thresholds['lim'] == True), ['bin', 'maxi']]
     limits.reset_index(inplace=True, drop=True)
@@ -408,6 +408,6 @@ def generate_lines(model, parameter, color = 'red', linewidth = 1):
 
 # print(generate_model_table('UHL_PEWS'))
 # print('\n')
-# print(generate_model_table('nat_PEWS'))
-# generate_model_table('nat_PEWS').to_csv('data/nat_PEWS_limits.csv', index=False)
+# print(generate_model_table('NPEWS'))
+# generate_model_table('NPEWS').to_csv('data/NPEWS_limits.csv', index=False)
 # generate_model_table('UHL_PEWS').to_csv('data/UHL_PEWS_limits.csv', index=False)
