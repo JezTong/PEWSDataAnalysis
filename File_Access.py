@@ -40,7 +40,7 @@ if ctx_auth.acquire_token_for_user(username, password):
     web = ctx.web
     ctx.load(web)
     ctx.execute_query()
-    print("\nLogged into: {0}".format(web.properties['Title']))
+    print(f"\n...Logged into: {web.properties['Title']}")
 
 else:
     print(ctx_auth.get_last_error())
@@ -57,17 +57,17 @@ def load_file(filename):
     bytes_file_obj.seek(0)
 
     global df
-    print('\nLoading {}...'.format(filename))
+    print(f'\n...Loading {filename}...')
 
-    if filename.endswith(".xlsx"):
+    if filename.endswith('.xlsx'):
         dict = pd.read_excel(bytes_file_obj, sheet_name='Sheet1')  # read the excel file in python as a dictionary
         df = pd.DataFrame.from_dict(dict)  # convert dictionary to a dataframe using pandas
         return df
 
-    elif filename.endswith(".csv"):
+    elif filename.endswith('.csv'):
         df = pd.read_csv(bytes_file_obj)  # read the .csv file in python as a dataframe
         return df
 
     else:
-        file = input("\nFile not recognised, please try again: ")
+        file = input("\n*** File not recognised, please try again: ")
         Load_file(file)
