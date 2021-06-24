@@ -18,8 +18,6 @@ import seaborn as sns  # pip install seaborn
 import statsmodels.api as sm  # pip install statsmodels
 import statsmodels.formula.api as smf
 
-# Import PEWS models
-import PEWS_models as PM
 
 """ Load Data Files """
 
@@ -60,9 +58,10 @@ def load_synthetic_data():
 
 def load_saved_data(parameter):
     # function to load previously processed and saved data (rapid file load for code development)
-    df = pd.read_csv(f'data/{parameter}.csv')
-    df.rename(columns={'age': 'age_in_days'}, inplace=True)
-    return df
+    parameter_df = pd.read_csv(f'data/{parameter}.csv')
+    parameter_df = pd.DataFrame(parameter_df)
+    # parameter_df.rename(columns={'age': 'age_in_days'}, inplace=True)
+    return parameter_df
 
 
 """ Initial Data Explore """
@@ -112,11 +111,11 @@ def split_BP(parameter_df):
 
 
 def clean_data(parameter_df):
-    # takes the parameter dataframe and converts text to NaN valuse
+    # takes the parameter dataframe and converts text to NaN values
     # removes missing values
     # converts data types from objects to integers
     par_name = parameter_df.columns[1]
-    parameter_df[par_name] = parameter_df[par_name].replace('\D+', np.NaN, regex=True)
+    parameter_df[par_name] = parameter_df[par_name].replace(r'\D+', np.NaN, regex=True)
     parameter_df.dropna(inplace=True)
     for i in list(parameter_df):
         parameter_df[i] = parameter_df[i].astype(int)
@@ -165,7 +164,7 @@ def format_plot(par_name, chart_type, ax):
     # function to add chart title, axis labels, show plot and save plot as .png
     plt.xlabel('Age in years')
     plt.ylabel(f'{par_name}')
-    plt.title(f'{chart_type} of {par_name} in children')
+    plt.title(f'{chart_type} For {par_name} in children')
     plt.savefig(f'plots/{par_name}_{chart_type}_plot.png')
     plt.show()
 
@@ -285,11 +284,11 @@ def quantile_regression(parameter_df):
     return parameter_df
 
 
-def poly_quantile_regression(parameter_df):
+def poly_quantile_regression_1(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial quantile regression'
+    chart_type = 'Polynomial quantile regression for y = m + x + x^2 '
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -298,6 +297,8 @@ def poly_quantile_regression(parameter_df):
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2)', parameter_df)
     result = model.fit(q=.5)
+    print('\n')
+    print(chart_type)
     print('\n')
     print(result.summary())
     print('\n')
@@ -352,6 +353,150 @@ def poly_quantile_regression(parameter_df):
     return parameter_df
 
 
+def poly_quantile_regression_2(parameter_df):
+    # function to plot centile lines using quantile regression
+
+    par_name = parameter_df.columns[1]
+    chart_type = 'Polynomial quantile regression for y = m + x + x^2 + x^3 '
+
+    # plot a scatter graph of the data
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+
+    # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
+    model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2) + np.power(age, 3)', parameter_df)
+    result = model.fit(q=.5)
+    print('\n')
+    print(chart_type)
+    print('\n')
+    print(result.summary())
+    print('\n')
+    print(result.params)
+
+    # quantile lines to display
+    quantiles = [.95, .75, .5, .25, .05]
+
+    def fit_model(q):
+        # function to apply LAD model to the data
+        result = model.fit(q=q)
+        return [
+                   q,
+                   result.params['Intercept'],
+                   result.params['age'],
+                   result.params['np.power(age, 2)'],
+                   result.params['np.power(age, 3)'],
+               ] + result.conf_int().loc['age'].tolist()
+
+    # apply ALD model for each quantile in list & convert to dataframe for plotting
+    models = [fit_model(x) for x in quantiles]
+    models = pd.DataFrame(models, columns=['q', 'a', 'b', 'c', 'd', 'lb', 'ub'])
+
+    ols = smf.ols(f'{par_name} ~ age + np.power(age, 2) + np.power(age, 3)', parameter_df).fit()
+    ols_ci = ols.conf_int().loc['age'].tolist()
+    ols = dict(a=ols.params['Intercept'],
+               b=ols.params['age'],
+               c=ols.params['np.power(age, 2)'],
+               d=ols.params['np.power(age, 3)'],
+               lb=ols_ci[0],
+               ub=ols_ci[1])
+
+    print('\n')
+    print(models)
+    print('\n')
+    print(ols)
+
+    # prepare a list of values for the prediction model
+    x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 50)
+    # prediction model formula
+    get_y = lambda a, b, c, d: a + b * x + c * np.power(x, 2) + d * np.power(x,3)
+
+    # plot the OLS fit line
+    y = get_y(ols['a'], ols['b'], ols['c'], ols['d'])
+    ax.plot(x, y, color='darkorange', linewidth=1, label='OLS')
+
+    # plot each of the quantiles in the models dataframe
+    for i in range(models.shape[0]):
+        y = get_y(models.a[i], models.b[i], models.c[i], models.d[i])
+        ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
+
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    format_plot(par_name, chart_type, ax)
+    return parameter_df
+
+
+def poly_quantile_regression_3(parameter_df):
+    # function to plot centile lines using quantile regression
+
+    par_name = parameter_df.columns[1]
+    chart_type = 'Polynomial quantile regression for y = m + x + x^0.5 + x^2 + x^3 '
+
+    # plot a scatter graph of the data
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+
+    # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
+    model = smf.quantreg(f'{par_name} ~ age + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df)
+    result = model.fit(q=.5)
+    print('\n')
+    print(chart_type)
+    print('\n')
+    print(result.summary())
+    print('\n')
+    print(result.params)
+
+    # quantile lines to display
+    quantiles = [.95, .75, .5, .25, .05]
+
+    def fit_model(q):
+        # function to apply LAD model to the data
+        result = model.fit(q=q)
+        return [
+                   q,
+                   result.params['Intercept'],
+                   result.params['age'],
+                   result.params['np.power(age, 0.5)'],
+                   result.params['np.power(age, 2)'],
+                   result.params['np.power(age, 3)'],
+               ] + result.conf_int().loc['age'].tolist()
+
+    # apply ALD model for each quantile in list & convert to dataframe for plotting
+    models = [fit_model(x) for x in quantiles]
+    models = pd.DataFrame(models, columns=['q', 'a', 'b', 'c', 'd', 'e', 'lb', 'ub'])
+
+    ols = smf.ols(f'{par_name} ~ age + + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df).fit()
+    ols_ci = ols.conf_int().loc['age'].tolist()
+    ols = dict(a=ols.params['Intercept'],
+               b=ols.params['age'],
+               c=ols.params['np.power(age, 0.5)'],
+               d=ols.params['np.power(age, 2)'],
+               e=ols.params['np.power(age, 3)'],
+               lb=ols_ci[0],
+               ub=ols_ci[1])
+
+    print('\n')
+    print(models)
+    print('\n')
+    print(ols)
+
+    # prepare a list of values for the prediction model
+    x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 50)
+    # prediction model formula
+    get_y = lambda a, b, c, d, e: a + b * x + c * np.power(x, 0.5) + d * np.power(x, 2) + e * np.power(x, 3)
+
+    # plot the OLS fit line
+    y = get_y(ols['a'], ols['b'], ols['c'], ols['d'], ols['e'])
+    ax.plot(x, y, color='darkorange', linewidth=1, label='OLS')
+
+    # plot each of the quantiles in the models dataframe
+    for i in range(models.shape[0]):
+        y = get_y(models.a[i], models.b[i], models.c[i], models.d[i], models.e[i])
+        ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
+
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    format_plot(par_name, chart_type, ax)
+    return parameter_df
+
+
 """ Save files """
 
 
@@ -366,35 +511,33 @@ def save_as_csv(parameter_df):
 
 # use this for analysing files on Sharepoint
 # TODO change parameter abbreviations to full descriptions
-# parameter_list = ['HR', 'RR', 'BP', 'sats']
-# for parameter in parameter_list:
-#     # takes the dataframe and processes in sequence
-#     df = load_sharepoint_file(file_scope='half')
-#     process = (
-#
-#         select_parameter(df, parameter)
-#             .pipe(split_BP)
-#             .pipe(clean_data)
-#             .pipe(convert_decimal_age)
-#             .pipe(print_data)
-#             .pipe(plot_scatter)
-#             .pipe(poly_quantile_regression)
-#             .pipe(save_as_csv)
-    )
-
-# use this for testing - takes in pre-prepared data set
-parameter_list = ['HR', 'RR', 'sBP', 'sats']
+parameter_list = ['HR', 'RR', 'BP', 'sats']
 for parameter in parameter_list:
     # takes the dataframe and processes in sequence
-    df = load_saved_data(parameter)
+    df = load_sharepoint_file(file_scope='full')
     process = (
 
         select_parameter(df, parameter)
-        .pipe(convert_decimal_age)
-        .pipe(print_data)
-        .pipe(poly_quantile_regression)
-
+            .pipe(split_BP)
+            .pipe(clean_data)
+            .pipe(convert_decimal_age)
+            .pipe(print_data)
+            .pipe(poly_quantile_regression_1)
+            .pipe(poly_quantile_regression_2)
+            .pipe(poly_quantile_regression_3)
+            .pipe(save_as_csv)
     )
+
+# .pipe(plot_scatter)
+
+# use this for testing - takes in pre-prepared data set
+# parameter_list = ['HR', 'RR', 'sBP', 'sats']
+# for parameter in parameter_list:
+#     # takes the dataframe and processes in sequence
+#     parameter_df = load_saved_data(parameter)
+#     print_data(parameter_df)
+#     poly_quantile_regression(parameter_df)
+
 
 
 # use this for analysing synthetic data set
@@ -449,7 +592,7 @@ exit()
 
 
 # bin the HR data by age
-bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
+# bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
 # [np.arange(0, 6574, 28)]  # Age bins according to PEWS chart categories
 # bin_labels = [np.arange(0, len(bins))]  # Age bin category labels
 
@@ -458,22 +601,22 @@ bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
 # print(bin_labels)
 
 # classify age according to age bins and add an Age bin column to the PEWS Dataframe
-df_HR['bin'] = pd.cut(df_HR.age, bins=bins)
+# df_HR['bin'] = pd.cut(df_HR.age, bins=bins)
 # print('\nHR Dataframe 2\n')
 # print(df_HR)
 
 # calculate the mean values for each age bin
-HR_mean = df_HR.groupby('bin', as_index=False, sort=True).mean()
-HR_mean = pd.DataFrame(HR_mean, columns=['age', 'bin', 'HR'])
+# HR_mean = df_HR.groupby('bin', as_index=False, sort=True).mean()
+# HR_mean = pd.DataFrame(HR_mean, columns=['age', 'bin', 'HR'])
 # print('\nHR means\n')
 # print(HR_mean)
 
 # TODO figure out how to plot the standard deviation
 
-HR_std = df_HR.groupby('bin', as_index=False, sort=True).std()
-HR_std = pd.DataFrame(HR_std)  # , columns=['age', 'bin', 'HR']
-print('\nHR standard deviations\n')
-print(HR_std)
+# HR_std = df_HR.groupby('bin', as_index=False, sort=True).std()
+# HR_std = pd.DataFrame(HR_std)  # , columns=['age', 'bin', 'HR']
+# print('\nHR standard deviations\n')
+# print(HR_std)
 
 # TODO match up centiles with the age markers better
 
@@ -483,117 +626,12 @@ exit()
 """Saving this for later"""
 
 
-def bin_by_age(parameter_df, bins=54):
-    # categorises the parameter data by time intervals
-    # number of bins for specific time intervals: 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
-    par_name = parameter_df.columns[1]
-    parameter_df['bin'] = pd.cut(parameter_df.age, bins=bins)
-    print(f'\n...{par_name} data binned by age intervals...')
-    print(parameter_df.head(10))
-    return parameter_df
+# def bin_by_age(parameter_df, bins=54):
+#     # categorises the parameter data by time intervals
+#     # number of bins for specific time intervals: 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
+#     par_name = parameter_df.columns[1]
+#     parameter_df['bin'] = pd.cut(parameter_df.age, bins=bins)
+#     print(f'\n...{par_name} data binned by age intervals...')
+#     print(parameter_df.head(10))
+#     return parameter_df
 
-
-""" This works! but plots straight centile lines"""
-
-
-def plot_centiles(parameter_df):
-    # function to plot centile lines using quantile regression
-
-    par_name = parameter_df.columns[1]
-    chart_type = 'centiles'
-
-    # plot a scatter graph of the data
-    plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
-
-    # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
-    model = smf.quantreg(f'{par_name} ~ age', parameter_df)
-    result = model.fit(q=0.5)
-    print(result.summary())
-
-    quantiles = [0.05, 0.5, 0.95]
-
-    # function to fit regression model to a quantile 'q'
-    def fit_model(q):
-        result = model.fit(q=q)
-        return [q, result.params['Intercept'], result.params['age']] + result.conf_int().loc['age'].tolist()
-
-    # fit the regression model to quantiles and convert it to a dataframe
-    models = [fit_model(x) for x in quantiles]
-    models = pd.DataFrame(models, columns=['q', 'a', 'b', 'lb', 'ub'])
-
-    # Ordinary Least Squared model predicting parameter based on age
-    ols = smf.ols(f'{par_name} ~ age', parameter_df).fit()
-    ols_ci = ols.conf_int().loc['age'].tolist()
-    ols = dict(a=ols.params['Intercept'],
-               b=ols.params['age'],
-               lb=ols_ci[0],
-               ub=ols_ci[1])
-
-    print(models)
-    print(ols)
-
-    # set up the regression data and plotting it
-    x = np.range(parameter_df.age.min(), parameter_df.age.max(), 50)
-    get_y = lambda a, b: a + b * x
-
-    for i in range(models.shape[0]):
-        y = get_y(models.a[i], models.b[i])
-        plt.plot(x, y, linestyle='dotted', color='red')
-
-    y = get_y(ols['a'], ols['b'])
-
-    plt.plot(x, y, color='red', label='OLS')
-
-    plt.legend()
-    format_plot(par_name, chart_type, ax)
-    return parameter_df
-
-
-""" This doesn't work """
-
-
-def plot_poly_centiles(parameter_df):
-    # function to plot centile lines using quantile regression
-
-    par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial regression centiles'
-
-    # plot a scatter graph of the data
-    plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
-
-    parameter_df = sm.add_constant(parameter_df)  #
-    print(parameter_df.head())  #
-
-    model = smf.quantreg(f'{par_name} ~ 1 + age + np.power(age, 2)', parameter_df)
-    result = model.fit(q=0.5)
-    print(result.summary())
-    print(result.params)
-
-    # Quantile regression for 5 quantiles
-    quantiles = [.05, .25, .50, .75, .95]
-
-    # get all result instances in a list
-    result_all = [model.fit(q=q) for q in quantiles]
-
-    # create x for prediction
-    x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 50)
-    predicted_df = pd.DataFrame({'age': x})
-
-    for qm, result in zip(quantiles, result_all):
-        # get prediction for the model and plot
-        # here we use a dict which works the same way as the df in ols
-
-        y_cent = result.predict({'age': x})
-        plt.plot(x, y_cent, linestyle='--', linewidth=1, color='red')
-
-    # create ols model
-    result_ols = smf.ols(f'{par_name} ~ age + np.power(age, 2)', parameter_df).fit()
-    # plot ols line
-    y_ols_predicted = result_ols.predict(predicted_df)
-    plt.plot(x, y_ols_predicted, color='k', linewidth=1, label='OLS')
-
-    plt.legend()
-    format_plot(par_name, chart_type, ax)
-    return parameter_df

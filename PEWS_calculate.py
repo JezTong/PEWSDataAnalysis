@@ -74,7 +74,7 @@ def select_PEWS_data_columns(raw_df):
     PEWS_df = raw_df.filter([
         'dob', 'obs_date',
         'concern',
-        'RR', 'sats', 'receiving_o2', 'receiving_o2_units',
+        'RR', 'sats', 'receiving_o2',
         'HR', 'BP', 'cap_refill',
         'temp'
     ], axis=1)
@@ -114,11 +114,7 @@ def explore_data(df):
     print('\n')
     return(df)
 
-def list_unique_values(df):
-    for column in list(df.columns.values):
-        if (df[column].dtype == object ):
-            print(df[column].unique().tolist())
-    return df
+
 
 """ Data cleaning """
 
@@ -163,12 +159,46 @@ def split_BP(df):
         print('\n...No BP column to extract systolic BP from...')
         return df
 
-def clean_data(df):
-    # takes the parameter dataframe and converts text to NaN values
-    # removes missing values
-    # converts data types from objects to integers
-    print('\n...Data cleaning in progress...')
-    par_list = ['RR', 'sats', 'HR', 'sBP']
+
+def replace_nan(df):
+    # replaces Nan values
+    df['concern'].fillna('No', inplace=True)
+    df['receiving_o2'].fillna('21', inplace=True)
+    df['cap_refill'].fillna('0-2 secs', inplace=True)
+    return df
+
+
+def clean_receiving_o2_data(df):
+    #  cleans the receiving O2 data
+    #
+    df['receiving_o2'] = df['receiving_o2'].replace('Air', '21')
+
+    return df
+
+
+def clean_categorical_data(df):
+    # takes the dataframe and converts categorical data parameters to codes
+    # categorical parameters are listed in cat_list
+    print('\n...Processing Categorical Data...')
+    cat_list = ['concern', 'cap_refill']
+
+    for cat in cat_list:
+        df[cat] = df[cat].astype('category')
+        # print(df.dtypes)
+        # df[f'{cat}_cat'] = df[cat].cat.codes
+        # print(df.head())
+
+    print('\n...Categorical Data cleaning complete...')
+    return df
+
+
+def clean_continuous_data(df):
+    # takes the dataframe and converts continuous data parameters to
+    # continuous parameters are listed in par_list
+    # any text strings are converted to NaN values
+    # NaN values are removed
+    print('\n...Processing Continuous Data...')
+    par_list = ['age', 'RR', 'sats',  'HR', 'sBP', 'temp']
 
     for par in par_list:
         df[par] = pd.to_numeric(df[par], errors='coerce')
@@ -176,30 +206,21 @@ def clean_data(df):
         df.dropna(subset=[par], inplace=True)
         print(f'\n    Final count of {par} NaN: ', df[par].isna().sum())
 
-    df.reset_index(inplace=True)
-    print('\n...Data cleaning in complete...')
+    df.reset_index(drop=True, inplace=True)
+    print('\n...Continuous Data cleaning complete...')
     return df
 
-def convert_dtypes(df):
-    convert_dict = {
-                    'RR': int,
-                    'sats': int,
-                    'HR': int,
-                    'temp': float,
+# 'receiving_o2',
 
-                    }
-
-    df = df.astype(convert_dict)
-    print('\n')
-    print(df.dtypes)
-    print('/nDatatypes converted...')
+def list_unique_values(df):
+    for column in list(df.columns.values):
+        if (df[column].dtype == object ):
+            print(df[column].unique().tolist())
     return df
 
-# 'concern': str,                    'cap_refill': str,
-# 'receiving_o2': object,
-# 'receiving_o2_units': object,
-# 'BP': object,
-# 'ACVPU': object
+
+
+
 
 """ Calculate PEWS scores for different models """
 
@@ -214,12 +235,17 @@ raw_df = load_sharepoint_file(file_scope='half')
 PEWS_df = select_PEWS_data_columns(raw_df)
 PEWS_df = calculate_age(PEWS_df)
 PEWS_df = convert_to_decimal_age(PEWS_df)
-# PEWS_df = drop_column(PEWS_df, column_list=['dob', 'obs_date'])
-# explore_data(PEWS_df)
+
 PEWS_df = split_BP(PEWS_df)
+PEWS_df = replace_nan(PEWS_df)
+# explore_data(PEWS_df)
+
+PEWS_df = clean_receiving_o2_data(PEWS_df)
+PEWS_df = clean_categorical_data(PEWS_df)
+PEWS_df = clean_continuous_data(PEWS_df)
+
 explore_data(PEWS_df)
-PEWS_df = clean_data(PEWS_df)
-explore_data(PEWS_df)
+list_unique_values(PEWS_df)
 
 
 # process = (

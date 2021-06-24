@@ -55,8 +55,8 @@ class NPEWS(object):
 
             [4, 'RR', 40, 100, 4, False],
             [4, 'RR', 30, 39, 2, False],
-            [4, 'RR', 26, 29, 1, False],
-            [4, 'RR', 16, 25, 0, True],
+            [4, 'RR', 25, 29, 1, False],
+            [4, 'RR', 16, 24, 0, True],
             [4, 'RR', 11, 15, 1, True],
             [4, 'RR', 0, 10, 4, False],
 
@@ -102,10 +102,10 @@ class NPEWS(object):
             [3, 'HR', 61, 70, 2, True],
             [3, 'HR', 0, 60, 4, False],
 
-            [4, 'HR', 131, 300, 4, False],
-            [4, 'HR', 121, 130, 2, True],
-            [4, 'HR', 101, 120, 1, True],
-            [4, 'HR', 71, 100, 0, True],
+            [4, 'HR', 130, 300, 4, False],
+            [4, 'HR', 120, 129, 2, True],
+            [4, 'HR', 100, 119, 1, True],
+            [4, 'HR', 71, 99, 0, True],
             [4, 'HR', 61, 70, 1, True],
             [4, 'HR', 51, 60, 2, True],
             [4, 'HR', 0, 50, 4, False],
@@ -126,8 +126,8 @@ class NPEWS(object):
             [2, 'sBP', 51, 60, 2, False],
             [2, 'sBP', 0, 50, 4, False],
 
-            [3, 'sBP', 140, 250, 4, False],
-            [3, 'sBP', 120, 139, 2, False],
+            [3, 'sBP', 130, 250, 4, False],
+            [3, 'sBP', 120, 129, 2, False],
             [3, 'sBP', 110, 119, 1, False],
             [3, 'sBP', 91, 109, 0, False],
             [3, 'sBP', 81, 90, 1, False],
@@ -169,7 +169,7 @@ class NPEWS(object):
 
 
 """
-# age ranges: { 0: 'all_ages', 1: '0-11m', 2: '1-4y', 3: '5-11y', 4: '>12y' }
+# age ranges: { 0: 'all_ages', 1: '0-11m', 2: '1-4y', 3: '5-12y', 4: '>13y' }
 # concern = { 'w': 'Worse , 's': 'Same', 'b': 'Better', 'pa': 'Parent Away', 'a': 'Parent Asleep' }
 # AVPU = { 'asleep':'asleep', 'a':'alert','v':'responsive to voice', 'p': 'responsive to pain', 'u': 'unresponsive' }
 
@@ -305,7 +305,7 @@ class UHL_PEWS(object):
 # Function to generate a table containing the PEWS model
 def generate_model_table(model):
     columns = ['age_range', 'parameter', 'lower_lim', 'upper_lim', 'score', 'plot?']
-    age_range_labels = ['all_ages', '0-11m', '1-4y', '5-11y', '>12y']
+    age_range_labels = ['all_ages', '0-11m', '1-4y', '5-12y', '>13y']
 
     if model == 'UHL_PEWS':
         table = pd.DataFrame(UHL_PEWS().thresholds, columns=columns)
