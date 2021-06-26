@@ -7,20 +7,13 @@
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
-                    Pandas
+                    Numpy, Pandas
 """
 
 # Import Python Modules
 import numpy as np  # pip install numpy
 import pandas as pd  # pip install pandas
-import matplotlib.pyplot as plt  # pip install matplotlib
-import seaborn as sns  # pip install seaborn
-import statsmodels.api as sm  # pip install statsmodels
-import statsmodels.formula.api as smf
-import datetime as dt
 
-# Import PEWS models
-# import PEWS_models as PM
 
 """ Load Data Files """
 
@@ -162,6 +155,9 @@ def split_BP(df):
 
 def replace_nan(df):
     # replaces Nan values
+    # assumes blank value for concern = no concern
+    # assumes blank value for receiving_o2 = breathing Air
+    # assumes blank value for cap_refill = brisk response (<3sec)
     df['concern'].fillna('No', inplace=True)
     df['receiving_o2'].fillna('21', inplace=True)
     df['cap_refill'].fillna('0-2 secs', inplace=True)
@@ -169,10 +165,35 @@ def replace_nan(df):
 
 
 def clean_receiving_o2_data(df):
-    #  cleans the receiving O2 data
-    #
-    df['receiving_o2'] = df['receiving_o2'].replace('Air', '21')
+    #  cleans the receiving_O2 data column
+    # assumes NaN or nonsensical values to be Air (replace_nan())
+    # final values: 21 = Air
+    # final values: any number > 21 is % FiO2
+    # final values: any number < 21 is in L/min
+    print('\n...Cleaning \"Receiving O2\" Data...')
 
+    # print(sorted(df['receiving_o2'].unique().tolist()))
+
+    #  first convert to string so regex will work
+    df['receiving_o2'] = df['receiving_o2'].astype(str)
+    # replace Air with 21
+    df['receiving_o2'] = df['receiving_o2'].replace('Air', '21')
+    # replace @ = or ' with 21
+    df['receiving_o2'] = df['receiving_o2'].replace('[=@\']', '21', regex=True)
+
+    # removes L from values
+    df['receiving_o2'] = df['receiving_o2'].replace('[lL.]$', '', regex=True)
+
+    # replaces 00. with 0.0
+    df['receiving_o2'] = df['receiving_o2'].replace('^00.', '0.0', regex=True)
+    # replace 00 with 0.0
+    df['receiving_o2'] = df['receiving_o2'].replace('^00', '0.0', regex=True)
+
+    # convert values back to float numbers
+    df['receiving_o2'] = df['receiving_o2'].astype(float)
+
+    # print(sorted(df['receiving_o2'].unique().tolist()))
+    print('\n...Receiving O2 Data cleaning complete...')
     return df
 
 
@@ -210,15 +231,12 @@ def clean_continuous_data(df):
     print('\n...Continuous Data cleaning complete...')
     return df
 
-# 'receiving_o2',
 
 def list_unique_values(df):
     for column in list(df.columns.values):
-        if (df[column].dtype == object ):
-            print(df[column].unique().tolist())
+        # if (df[column].dtype == object ):
+        print(df[column].unique().tolist())
     return df
-
-
 
 
 
@@ -230,7 +248,7 @@ def list_unique_values(df):
 """ Sequential Function Call """
 # use this to load the PEWS sharepoint files, select the relevant columns and save locally as a csv file for quick access
 
-raw_df = load_sharepoint_file(file_scope='half')
+raw_df = load_sharepoint_file(file_scope='full')
 # explore_data(raw_df)
 PEWS_df = select_PEWS_data_columns(raw_df)
 PEWS_df = calculate_age(PEWS_df)
@@ -245,46 +263,31 @@ PEWS_df = clean_categorical_data(PEWS_df)
 PEWS_df = clean_continuous_data(PEWS_df)
 
 explore_data(PEWS_df)
-list_unique_values(PEWS_df)
+# list_unique_values(PEWS_df)
+# save_as_csv(PEWS_df, 'PEWS_data_clean')
 
 
+""" pipe doesn't seem to work for this """
+
+# raw_df = load_sharepoint_file(file_scope='half')
+# PEWS_df = select_PEWS_data_columns(raw_df)
 # process = (
-#     explore_data(df)
-#         .pipe(select_PEWS_data_columns)
+#     calculate_age(PEWS_df)
 #         .pipe(calculate_age)
-#         .pipe(drop_column(df=PEWS_df, column_list=['dob', 'obs_date', 'age_in_days']))
-#         .pipe(convert_decimal_age)
-#         .pipe(explore_data)
+#         .pipe(convert_to_decimal_age)
+#
+#         .pipe(split_BP)
+#         .pipe(replace_nan)
+#
+#         .pipe(clean_receiving_o2_data)
+#         .pipe(clean_categorical_data)
+#         .pipe(clean_continuous_data)
 #             )
+# explore_data(PEWS_df)
+# list_unique_values(PEWS_df)
 
-# .pipe(save_as_csv(PEWS_df, file_name='PEWS_data'))
-# use this for analysing the saved csv data file
 
-# process = (
-#     explore_data(df=load_saved_data())
-#
-#         .pipe(list_unique_values)
-#
-# )
-
-# .pipe(convert_dtypes)
 
 
 exit()
 
-# use this for analysing files on Sharepoint
-# parameter_list = ['HR', 'RR', 'BP']
-# for parameter in parameter_list:
-#     # takes the dataframe and processes in sequence
-#     df = load_sharepoint_file(file_scope='half')
-#     process = (
-#
-#         select_parameter(df, parameter)
-#             .pipe(split_BP)
-#             .pipe(clean_data)
-#             .pipe(convert_decimal_age)
-#             .pipe(print_data)
-#             .pipe(plot_scatter)
-#             .pipe(poly_quantile_regression)
-#             .pipe(save_as_csv)
-#     )

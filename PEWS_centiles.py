@@ -45,7 +45,7 @@ def load_sharepoint_file(file_scope='full'):
         HISS_df = pd.concat([HISS_df_1, HISS_df_2])
 
     # Merge the PEWS and HISS Data files
-    print('\nMerging Data Files...')
+    print('\n...Merging Data Files...')
     df = pd.merge(PEWS_df, HISS_df, on='spell_id', how='outer')
     return df
 
