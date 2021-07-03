@@ -320,11 +320,11 @@ def generate_model_table(model):
 
 """ view threshold tables and generate .csv files """
 
-# print(generate_model_table('UHL_PEWS'))
+print(generate_model_table('UHL_PEWS'))
 # print('\n')
 print(generate_model_table('NPEWS'))
 generate_model_table('NPEWS').to_csv('data/NPEWS_limits.csv', index=False)
-# generate_model_table('UHL_PEWS').to_csv('data/UHL_PEWS_limits.csv', index=False)
+generate_model_table('UHL_PEWS').to_csv('data/UHL_PEWS_limits.csv', index=False)
 
 exit()
 

@@ -240,11 +240,6 @@ def list_unique_values(df):
 
 
 
-""" Calculate PEWS scores for different models """
-
-# activate PEWS threshold
-
-
 """ Sequential Function Call """
 # use this to load the PEWS sharepoint files, select the relevant columns and save locally as a csv file for quick access
 
