@@ -3,7 +3,7 @@
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
-    VERSION:       0.2.3
+    VERSION:       0.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
     DEPENDENCIES:  This program requires the following modules:
@@ -69,10 +69,10 @@ def explore_data(df):
 #
 
 
-def get_parameter_limit():
+def get_parameter_limit(age_bin):
     # looks up the lower limit for scoring range in the model table
     limit_row = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == '0-11m') &
+        (UHL_PEWS_limits['age_range'] == age_bin) &
         (UHL_PEWS_limits['parameter'] == 'HR') &
         (UHL_PEWS_limits['score'] == 0)
     ]
@@ -83,9 +83,8 @@ def get_parameter_limit():
 def calculate_score(PEWS_df):
     # create a new scored dataframe
     PEWS_scored = PEWS_df
-    # create the scoring columns
-    upper_lim = get_parameter_limit()[1]
-    lower_lim = get_parameter_limit()[0]
+
+
 
 
     #  bin ages by chart age ranges
@@ -95,6 +94,10 @@ def calculate_score(PEWS_df):
     # classify age according to age bins and add an age_bin column to the PEWS_scored Dataframe
     PEWS_scored['age_bin'] = pd.cut(PEWS_scored.age, PEWS_bins, labels=PEWS_bin_labels)
 
+    # get the parameter limits
+
+    lower_lim = get_parameter_limit(age_bin='0-11m')[0]
+    upper_lim = get_parameter_limit(age_bin='0-11m')[1]
 
     filters = [
         (PEWS_df.age_bin == '0-11m') & (PEWS_df.HR > lower_lim) & (PEWS_df.HR < upper_lim),         # score = 0
