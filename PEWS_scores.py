@@ -61,14 +61,15 @@ def score_it(chart, par, value):
     # par = vital sign or observation parameter
     # value = value of the parameter
 
+    # create a mini-DataFrame of parameter limits based on the age (chart) and parameter to be scored
     model = PEWS_model.loc[(PEWS_model['chart'] == chart) & (PEWS_model['par'] == par), ['lower', 'upper', 'score']]
 
+    # iterate over the mini-DataFrame
     for index, row in model.iterrows():
         lower = row.lower
         upper = row.upper + 1
 
-        # print(lower)
-        # print(upper)
+        # return the score if the parameter value is within the range of the limits
         if value in range(lower, upper):
             score = row.score
             return score
