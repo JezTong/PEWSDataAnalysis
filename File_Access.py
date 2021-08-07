@@ -1,5 +1,5 @@
 """
-    NAME:          PEWSDataAnalysis: File_Access.py
+    NAME:          PEWSDataAnalysis/File_Access.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021

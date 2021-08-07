@@ -11,6 +11,15 @@
                     Office365-REST-Python-Client 2.3.1 https://pypi.org/project/Office365-REST-Python-Client/
 """
 
+"""
+
+This code is development code and does not work. It is used for testing concepts. 
+Working code is stored in the main directory.
+
+"""
+
+
+
 #TODO Create a virtual Python environment and requirements.txt to allow installation of necessary packages using: python -m pip install -r requirements.txt
 
 # Import Python Modules

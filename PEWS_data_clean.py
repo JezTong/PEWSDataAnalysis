@@ -1,11 +1,12 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis/PEWS_data_clean.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
     VERSION:       0.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
+    DETAILS:       A collection of functions to clean PEWS data and save as .csv files
     DEPENDENCIES:  This program requires the following modules:
                     Numpy, Pandas
 """
@@ -20,7 +21,7 @@ import pandas as pd  # pip install pandas
 
 def load_sharepoint_file(file_scope='full'):
     # function to load PEWS data file from Sharepoint account
-    # file_scope: 'half' = limited (faster), 'full' = load full database
+    # file_scope: 'half' = limited (less data so faster), 'full' = load full database
 
     # code to access data files on Sharepoint
     import File_Access as FA
@@ -165,7 +166,7 @@ def replace_nan(df):
 
 
 def clean_receiving_o2_data(df):
-    #  cleans the receiving_O2 data column
+    # cleans the receiving_O2 data column
     # assumes NaN or nonsensical values to be Air (replace_nan())
     # final values: 21 = Air
     # final values: any number > 21 is % FiO2
@@ -219,7 +220,7 @@ def clean_continuous_data(df):
     # any text strings are converted to NaN values
     # NaN values are removed
     print('\n...Processing Continuous Data...')
-    par_list = ['age', 'RR', 'sats',  'HR', 'sBP', 'temp']
+    par_list = ['age', 'RR', 'Sats',  'HR', 'sBP', 'temp']
 
     for par in par_list:
         df[par] = pd.to_numeric(df[par], errors='coerce')
@@ -244,7 +245,7 @@ def list_unique_values(df):
 # use this to load the PEWS sharepoint files, select the relevant columns and save locally as a csv file for quick access
 
 raw_df = load_sharepoint_file(file_scope='full')
-# explore_data(raw_df)
+explore_data(raw_df)
 PEWS_df = select_PEWS_data_columns(raw_df)
 PEWS_df = calculate_age(PEWS_df)
 PEWS_df = convert_to_decimal_age(PEWS_df)

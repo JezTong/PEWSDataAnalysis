@@ -1,11 +1,12 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis/PEWS_centiles.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
     VERSION:       0.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
+    DETAILS:       Functions sued to process data and polt the data on charts with regression analysis
     DEPENDENCIES:  This program requires the following modules:
                     io, Numpy, Pandas, Mathplotlib, Seaborn, Statsmodels
 """

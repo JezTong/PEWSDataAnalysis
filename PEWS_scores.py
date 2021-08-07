@@ -1,11 +1,12 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis/PEWS_scores.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
     VERSION:       0.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
+    DETAILS:       Collection of functions for calculating the PEWS score for a selection of parameters
     DEPENDENCIES:  This program requires the following modules:
                     Numpy, Pandas
 """
@@ -13,7 +14,7 @@
 # Import Python Modules
 import numpy as np  # pip install numpy
 import pandas as pd  # pip install pandas
-import timeit
+
 
 """ Load Data Files """
 
@@ -29,7 +30,6 @@ def load_saved_data(filename):
     df = pd.read_csv(f'data/{filename}.csv', header='infer', index_col=0)
 
     return df
-
 
 
 """ Data Explore """
@@ -56,7 +56,7 @@ def explore_data(df):
 """ Calculate PEWS scores for different models """
 
 
-def score_it(chart, par, value):
+def par_score(chart, par, value):
     # chart = the PEWS chart corresponding to the age range
     # par = vital sign or observation parameter
     # value = value of the parameter
@@ -75,29 +75,71 @@ def score_it(chart, par, value):
             return score
 
 
+def cat_score(par, value):
+    # chart = the PEWS chart corresponding to all age ranges (chart: 4)
+    # par = vital sign or observation parameter
+    # value = value of the parameter
+
+    # create a mini-DataFrame of parameter limits based on the age (chart) and parameter to be scored
+    model = PEWS_model.loc[(PEWS_model['chart'] == 4) & (PEWS_model['par'] == par), ['lower', 'upper', 'score']]
+
+    if par in ['sats', 'receiving_o2']:
+
+        # iterate over the mini-DataFrame
+        for index, row in model.iterrows():
+            lower = row.lower
+            upper = row.upper + 1
+
+            # return the score if the parameter value is within the range of the limits
+            if value in range(lower, upper):
+                score = row.score
+                return score
+
+    elif par in ['concern', 'WoB']:
+
+        # iterate over the mini-DataFrame
+        for index, row in model.iterrows():
+            upper = row.upper
+
+            # return the score if the parameter value matches the score category
+            if value == upper:
+                score = row.score
+                return score
+
+    else:
+        print(f'\n* Error: {par} is not in the PEWS model')
+        score = 0
+        return score
+
+
 def calculate_PEWS(PEWS_df, model):
     # function to calculate PEWS scores
 
     #  bin ages by chart age ranges
-    PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-    charts = [0, 1, 2, 3] # age ranges are 0: 0-11m, 1: 1-4y, 2: 5-11y, 3: >12y
+    PEWS_bins = [0, 1, 5, 12, 18]   # Age bins according to PEWS chart categories
+    charts = [0, 1, 2, 3]           # age ranges are 0: 0-11m, 1: 1-4y, 2: 5-11y, 3: >12y
 
     # add a chart column to the Dataframe and classify age according to PEWS model age ranges
     PEWS_df['chart'] = pd.cut(PEWS_df.age, PEWS_bins, labels=charts)
 
     # define the parameter list to score
-    parameter_list = ['HR', 'RR']
+    parameter_list = ['HR', 'RR', 'sBP']
+    category_list = ['concern', 'sats', 'receiving_o2']
 
     # iterate through the parameter list to calculate the PEWS score for that parameter
-    for par in parameter_list:
-        print(f'\n...Calculating scores for {par}...')
-        PEWS_df[par+'_'+model] = PEWS_df.apply(lambda row: score_it(row['chart'], par, row[par]), axis=1)
+    for par in PEWS_df.columns:
+        if par in parameter_list:
+            print(f'\n...Calculating scores for {par}...')
+            PEWS_df[par+'_'+model] = PEWS_df.apply(lambda row: par_score(row['chart'], par, row[par]), axis=1)
+
+        elif par in category_list:
+            print(f'\n...Calculating scores for {par}...')
+            PEWS_df[par + '_' + model] = PEWS_df.apply(lambda row: cat_score(par, row[par]), axis=1)
+
+        else:
+            print(f'\n** Skipping past {par} **')
 
     return PEWS_df
-
-
-
-
 
 
 """ UHL Nervecentre PEWS model """
@@ -106,8 +148,10 @@ class PEWS(object):
 
     """
     age ranges are 0-11m, 1-4y, 5-11y, >12y
-    limits age calculated on a < and < basis like this:
-        (value > lower limit) & (value < upper limit)
+    scores are calculated like this: (based on paper chart scoring convention)
+        (value >= lower) & (value <= upper) = score as per score for that range
+    columns are: 'chart', 'parameter', 'lower', 'upper', 'score'
+    lower = lower limit, upper = upper limit
     """
 
     limits = []
@@ -115,7 +159,7 @@ class PEWS(object):
     def __init__(self):
         self.limits = [
 
-            [0, 'HR',201, 310, 1],
+            [0, 'HR', 201, 310, 1],
             [0, 'HR', 161, 200, 1],
             [0, 'HR', 91, 160, 0],
             [0, 'HR', 61, 90, 1],
@@ -162,66 +206,68 @@ class PEWS(object):
             [3, 'RR', 11, 20, 0],
             [3, 'RR', 7, 10, 1],
             [3, 'RR', 0, 6, 1],
-            #
-            # [1, 'sBP', 110, 250, 'NA', False],
-            # [1, 'sBP', 71, 109, 0, True],
-            # [1, 'sBP', 61, 70, 'NA', True],
-            # [1, 'sBP', 51, 60, 'NA', False],
-            # [1, 'sBP', 30, 50, 'NA', False],
-            #
-            # [2, 'sBP', 111, 250, 'NA', False],
-            # [2, 'sBP', 81, 110, 0, True],
-            # [2, 'sBP', 71, 80, 'NA', True],
-            # [2, 'sBP', 61, 70, 'NA', False],
-            # [2, 'sBP', 30, 60, 'NA', False],
-            #
-            # [3, 'sBP', 121, 250, 'NA', False],
-            # [3, 'sBP', 91, 120, 0, True],
-            # [3, 'sBP', 81, 90, 'NA', True],
-            # [3, 'sBP', 71, 80, 'NA', False],
-            # [3, 'sBP', 30, 70, 'NA', False],
-            #
-            # [4, 'sBP', 151, 250, 'NA', False],
-            # [4, 'sBP', 101, 150, 0, True],
-            # [4, 'sBP', 76, 100, 'NA', True],
-            # [4, 'sBP', 30, 75, 'NA', False],
-            #
-            # [0, 'FiO2', 24, 100, 1, False],
-            # [0, 'FiO2', 20, 23, 0, False],
-            #
-            # [0, 'Sats', 94, 100, 0, False],
-            # [0, 'Sats', 30, 93, 0, False],
-            #
-            # [0, 'WoB', '', 'stridor', 1, False],
-            # [0, 'WoB', '', 'grunting', 1, False],
-            # [0, 'WoB', '', 'severe', 1, False],
-            # [0, 'WoB', '', 'moderate', 1, False],
-            # [0, 'WoB', '', 'mild', 0, False],
-            # [0, 'WoB', '', 'none', 0, False],
-            #
-            # [0, 'UHL_concern', '', 'Nurse', 1, False],
-            # [0, 'UHL_concern', '', 'parent', 1, False],
-            #
-            # [0, 'AVPU', '', 'unresponsive', 1, False],
-            # [0, 'AVPU', '', 'pain', 1, False],
-            # [0, 'AVPU', '', 'voice', 1, False],
-            # [0, 'AVPU', '', 'alert', 0, False],
-            # [0, 'AVPU', '', 'asleep', 0, False],
-            #
-            # [0, 'temp', 28.0, 36.0, 0, False],
-            # [0, 'temp', 36.1, 38.4, 0, False],
-            # [0, 'temp', 38.5, 42.0, 0, False],
-            #
-            # [0, 'cap_refill', '', '0-2', 0, False],
-            # [0, 'cap_refill', '', '3-4', 0, False],
-            # [0, 'cap_refill', '', '5-8', 0, False],
-            # [0, 'cap_refill', '', 'grey/mottled', 0, False],
-            #
-            # [0, 'pain', '', 'no', 0, False],
-            # [0, 'pain', '', 'mild', 0, False],
-            # [0, 'pain', '', 'moderate', 0, False],
-            # [0, 'pain', '', 'severe', 0, False],
-            # [0, 'pain', '', 'excruciating', 0, False],
+
+            [0, 'sBP', 110, 250, 0],
+            [0, 'sBP', 71, 109, 0],
+            [0, 'sBP', 61, 70, 0],
+            [0, 'sBP', 51, 60, 0],
+            [0, 'sBP', 30, 50, 0],
+
+            [1, 'sBP', 111, 250, 0],
+            [1, 'sBP', 81, 110, 0],
+            [1, 'sBP', 71, 80, 0],
+            [1, 'sBP', 61, 70, 0],
+            [1, 'sBP', 30, 60, 0],
+
+            [2, 'sBP', 121, 250, 0],
+            [2, 'sBP', 91, 120, 0],
+            [2, 'sBP', 81, 90, 0],
+            [2, 'sBP', 71, 80, 0],
+            [2, 'sBP', 30, 70, 0],
+
+            [3, 'sBP', 151, 250, 0],
+            [3, 'sBP', 101, 150, 0],
+            [3, 'sBP', 76, 100, 0],
+            [3, 'sBP', 30, 75, 0],
+
+            [4, 'receiving_o2', 24, 100, 1],
+            [4, 'receiving_o2', 20, 23, 0],
+            [4, 'receiving_o2', -1, 19, 1],
+
+            [4, 'sats', 94, 100, 0],
+            [4, 'sats', 30, 93, 0],
+
+            [4, 'WoB', '', 'stridor', 1],
+            [4, 'WoB', '', 'grunting', 1],
+            [4, 'WoB', '', 'severe', 1],
+            [4, 'WoB', '', 'moderate', 1],
+            [4, 'WoB', '', 'mild', 0],
+            [4, 'WoB', '', 'none', 0],
+
+            [4, 'concern', '', 'No', 0],
+            [4, 'concern', '', 'Nurse concern', 1],
+            [4, 'concern', '', 'Parent concern', 1],
+
+            [4, 'AVPU', '', 'unresponsive', 1],
+            [4, 'AVPU', '', 'pain', 1],
+            [4, 'AVPU', '', 'voice', 1],
+            [4, 'AVPU', '', 'alert', 0],
+            [4, 'AVPU', '', 'asleep', 0],
+
+            [4, 'temp', 28.0, 36.0, 0],
+            [4, 'temp', 36.1, 38.4, 0],
+            [4, 'temp', 38.5, 42.0, 0],
+
+            [4, 'cap_refill', '', '0-2 secs', 0],
+            [4, 'cap_refill', '', '3-4 secs', 0],
+            [4, 'cap_refill', '', '5-8 secs', 0],
+            [4, 'cap_refill', '', 'grey/mottled', 0],
+
+            [4, 'pain', '', 'no', 0],
+            [4, 'pain', '', 'mild', 0],
+            [4, 'pain', '', 'moderate', 0],
+            [4, 'pain', '', 'severe', 0],
+            [4, 'pain', '', 'excruciating', 0],
 
         ]
 
@@ -230,7 +276,7 @@ class PEWS(object):
 
 # instantiate the PEWS model DataFrame
 PEWS_model = pd.DataFrame(PEWS().limits, columns=['chart', 'par', 'lower', 'upper', 'score'])
-print(PEWS_model)
+# print(PEWS_model)
 
 
 """ Sequential Function Call """
@@ -239,376 +285,12 @@ PEWS_df = load_saved_data('PEWS_data_clean')
 # NPEWS_limits = load_saved_data('NPEWS_limits')
 # UHL_PEWS_limits = load_saved_data('UHL_PEWS_limits')
 
+explore_data(PEWS_df)
+
 explore_data(calculate_PEWS(PEWS_df, 'PEWS'))
 
-print(timeit.timeit())
-exit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-""" Test code """
-
-
-
-
-
-
-
-
-""" use this if decide to use class for getting thresholds """
-# chart_list = ['chart_1', 'chart_2', 'chart_3', 'chart_4']
-#
-# chart_1 = pd.DataFrame(PEWS_model().chart_1, columns = ['age_range', 'lower', 'upper', 'score'])
-# chart_2 = pd.DataFrame(PEWS_model().chart_1, columns = ['age_range', 'lower', 'upper', 'score'])
-# chart_3 = pd.DataFrame(PEWS_model().chart_1, columns = ['age_range', 'lower', 'upper', 'score'])
-# chart_4 = pd.DataFrame(PEWS_model().chart_1, columns = ['age_range', 'lower', 'upper', 'score'])
-# print(chart_1)
-# print(chart_2)
-
-""" PEWS Model Dictonaries """
-# Python Dictionary to store and recall limits and corresponding scores
-# 'chart_1' = 0-11m, 'chart_2' = 1-4y, 'chart_3' = 5-12y, 'chart_4' = >13y
-
-# chart_1 = {
-#     'HR': {'lower': 91, 'upper': 159, 'score': 0},
-#     'RR': {'lower': 31, 'upper': 59, 'score': 0}
-# }
-# PEWS = {
-#     'chart_1': {
-#         'age': [0, -1, 1],
-#         'HR': [0, 91, 160],
-#         'RR': [0, 31, 59]
-#     },
-#     'chart_2': {
-#         'age': [0, 1, 5],
-#         'HR': [0, 91, 140],
-#         'RR': [0, 21, 40]
-#     }
-# }
-
-
-
-# def calculate_EWS(PEWS_df):
-#     #  bin ages by chart age ranges
-#     PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-#     chart_list = ['chart_1', 'chart_2', 'chart_3', 'chart_4']
-#
-#     # classify age according to age bins and add an age_bin column to the PEWS_scored Dataframe
-#     PEWS_df['age_bin'] = pd.cut(PEWS_df.age, PEWS_bins, labels=chart_list)
-#
-#     parameter_list = ['HR']
-#
-#     temp_1 = pd.DataFrame()
-#
-#     for par in parameter_list:
-#
-#         score = PEWS['chart_1'][par][2]
-#
-#         score_it = lambda row: score if (row['age_bin'] == 'chart_1')  & (row[par] > PEWS['chart_1'][par][0]) & (row[par] < PEWS['chart_1'][par][1]) else ''
-#
-#         temp_1['PEWS_'+par] = temp_1.apply(score_it, axis=1)
-#
-#
-#     return PEWS_df
-
-
-# def calculate_score(PEWS_df):
-#
-#     #  bin ages by chart age ranges
-#     PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-#     chart_list = ['chart_1', 'chart_2', 'chart_3', 'chart_4']
-#     # PEWS_bin_labels = ['chart_1', 'chart_2', 'chart_3', 'chart_4']  # Age bin category labels
-#
-#     # classify age according to age bins and add an age_bin column to the PEWS_scored Dataframe
-#     PEWS_df['age_bin'] = pd.cut(PEWS_df.age, PEWS_bins, labels=chart_list)
-#
-#     temp_df_1 = PEWS_df[PEWS_df.age_bin == 'chart_1'].copy()
-#     temp_df_2 = PEWS_df[PEWS_df.age_bin == 'chart_2']
-#     temp_df_3 = PEWS_df[PEWS_df.age_bin == 'chart_3']
-#     temp_df_4 = PEWS_df[PEWS_df.age_bin == 'chart_4']
-#
-#     df_list = [temp_df_1, temp_df_2, temp_df_3, temp_df_4]
-#
-#
-#     score_it = lambda row: chart_1['HR'][2] if (row.HR > chart_1['HR'][0]) & (row.HR < chart_1['HR'][1]) else 1
-#     temp_df_1['PEWS_HR'] = temp_df_1.apply(score_it, axis=1)
-
-
-    # test = (temp_df_1.HR > chart_1['HR'][0]) & (temp_df_1.HR < chart_1['HR'][1])
-    # score = chart_1['HR'][2]
-    #
-    # temp_df_1['PEWS_HR'] = np.where(test, score, '')
-
-    # for df in df_list:
-    #
-    #     score = lambda row: 0 if  (row.HR >= 90) & (row.HR < get_upper_limit()) else 1
-    #     df['PEWS_HR'] = df.apply(score, axis=1)
-    #
-    # PEWS_scored = pd.concat(df_list)
-    # PEWS_scored = PEWS_scored.drop('Unnamed: 0', axis=1, inplace=True)
-
-
-
-
-
-    # print(PEWS_scored.head(50))
-    # print(PEWS_scored.describe())
-
-    # return temp_df_1
-def __init__(self):
-    self.limits = [
-
-        [1, 'age', -1, 1, 0],
-        [2, 'age', 1, 5, 0],
-
-        [1, 'HR', 201, 310, 1],
-        [1, 'HR', 161, 200, 1],
-        [1, 'HR', 91, 160, 0],
-        [1, 'HR', 61, 90, 1],
-        [1, 'HR', -1, 60, 1]
-    ]
-
-def get_upper_limit():
-    # looks up the lower limit for scoring range in the model table
-    limit_row = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == '0-11m') &
-        (UHL_PEWS_limits['parameter'] == 'HR') &
-        (UHL_PEWS_limits['score'] == 0)
-    ]
-    upper = int(limit_row['upper_lim'].values.item())
-    return upper
-
-
-def get_parameter_limit(age_bin):
-    # looks up the lower limit for scoring range in the model table
-    limit_row = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == age_bin) &
-        (UHL_PEWS_limits['parameter'] == 'HR') &
-        (UHL_PEWS_limits['score'] == 0)
-        ]
-    lower = int(limit_row['lower_lim'].values.item())
-    upper = int(limit_row['upper_lim'].values.item())
-    return lower, upper
-
-
-def get_parameter_bins(age_bin, parameter):
-    parameter_bins = UHL_PEWS_limits.loc[
-                         (UHL_PEWS_limits['age_range'] == age_bin) &
-                         (UHL_PEWS_limits['parameter'] == parameter)
-                         ]['upper_lim'].values.astype(int).tolist() + [0]
-
-    parameter_bins.reverse()
-    print(parameter_bins)
-    return parameter_bins
-
-
-def get_parameter_scores(age_bin, parameter):
-    parameter_scores = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == age_bin) &
-        (UHL_PEWS_limits['parameter'] == parameter)
-        ]['score'].values.astype(int).tolist()
-
-    parameter_scores.reverse()
-    print(parameter_scores)
-    return parameter_scores
-
-
-def get_lower_limit():
-    # looks up the lower limit for scoring range in the model table
-    limit_row = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == '0-11m') &
-        (UHL_PEWS_limits['parameter'] == 'HR') &
-        (UHL_PEWS_limits['score'] == 0)
-        ]
-    lower = int(limit_row['lower_lim'].values.item())
-    print(lower)
-    return lower
-
-
-def get_upper_limit():
-    upper_lim_row = UHL_PEWS_limits.loc[
-        (UHL_PEWS_limits['age_range'] == '0-11m') &
-        (UHL_PEWS_limits['parameter'] == 'HR') &
-        (UHL_PEWS_limits['score'] == 0)
-    ]
-    upper_limit = int(upper_lim_row['upper_lim'].item())
-    return upper_limit
-
-""" calculate score function test code """
-
-# lower = get_lower_limit(age_bin=age_bin)
-# upper = get_upper_limit(age_bin='0-11m')
-# score = UHL_PEWS_limits.loc[
-#     (UHL_PEWS_limits['age_range'] == age_bin) &
-#     (UHL_PEWS_limits['parameter'] == parameter)
-#     ]['score'].values.astype(int).tolist()
-
-# apply_score = lambda row: 0 if (row.age_bin == '0-11m') & (row.HR >= get_lower_limit(age_bin=row.age_bin)) & (row.HR < 160) else 1
-#
-# PEWS_scored['UHL_PEWS_HR'] = PEWS_scored.apply(apply_score, axis=1)
-
-
-# this works
-# lower = get_lower_limit(age_bin='0-11m')
-# upper = get_upper_limit(age_bin='0-11m')
-#
-# apply_score = lambda row: 'score' if (row.age_bin == '0-11m') & (row.HR > lower) & (row.HR <= upper) else 'something'
-#
-# PEWS_scored['UHL_PEWS_HR'] = PEWS_scored.apply(apply_score, axis=1)
-
-
-# this maybe works using pd.cut
-# HR_bins = UHL_PEWS_limits.loc[
-#     (UHL_PEWS_limits['age_range'] == '0-11m') &
-#     (UHL_PEWS_limits['parameter'] == 'HR')
-#     ]['upper_lim'].values.astype(int).tolist() + [0]
-#
-# HR_bins.reverse()
-# # print(HR_bins)
-#
-# HR_scores = UHL_PEWS_limits.loc[
-#     (UHL_PEWS_limits['age_range'] == '0-11m') &
-#     (UHL_PEWS_limits['parameter'] == 'HR')
-#     ]['score'].values.astype(int).tolist()
-#
-# HR_scores.reverse()
-# # print(HR_scores)
-#
-# PEWS_scored['score_HR'] = pd.cut(PEWS_scored['HR'], bins= HR_bins, labels= HR_scores, ordered=False)
-
-
-
-
-# this works using np.select
-# get the parameter limits
-# lower_lim = get_parameter_limit(age_bin='0-11m')[0]
-# upper_lim = get_parameter_limit(age_bin='0-11m')[1]
-#
-# filters = [
-#     (PEWS_df.age_bin == '0-11m') & (PEWS_df.HR > lower_lim) & (PEWS_df.HR < upper_lim),         # score = 0
-#     (PEWS_df.age_bin == '0-11m') & ((PEWS_df.HR < lower_lim) | (PEWS_df.HR > upper_lim))      # score = 1
-#            ]
-#
-# values = [0, 1]
-#
-# # apply filters to calculate the scores
-# PEWS_scored['HR_score'] = np.select(filters, values, default='error')
-
-# doesn't work really
-# parameter_list = ['HR', 'RR']
-# chart_list_2 = ['chart_1', 'chart_2']
-#
-# for par in parameter_list:
-#     for chart in chart_list_2:
-#         # get the parameter limits
-#         lower_lim = PEWS[chart][par][0]
-#         upper_lim = PEWS[chart][par][1]
-#
-#         conditions = [
-#             (PEWS_df['age_bin'] == chart) & (PEWS_df[par] > lower_lim) & (PEWS_df[par] < upper_lim),  # score = 0
-#             (PEWS_df['age_bin'] == chart)  # score = 1
-#         ]
-#
-#         scores = [PEWS[chart][par][2], 1]
-#
-#         # apply filters to calculate the scores
-#         PEWS_df[par+'_PEWS'] = np.select(conditions, scores, default='error')
-
-
-# chart = 'chart_1'
-# par = 'HR'
-#
-# # get the parameter limits
-# lower_lim = PEWS[chart][par][0]
-# upper_lim = PEWS[chart][par][1]
-#
-# conditions = [
-#     (PEWS_df['age_bin'] == chart) & (PEWS_df[par] > lower_lim) & (PEWS_df[par] < upper_lim),         # score = 0
-#     (PEWS_df['age_bin'] == chart)      # score = 1
-#            ]
-#
-# scores = [0, 1]
-#
-# # apply filters to calculate the scores
-# PEWS_df['HR_PEWS'] = np.select(conditions, scores, default='error')
-
-
-
-
-
-""" other test """
-
-# upper_lim = UHL_PEWS_limits.loc[(UHL_PEWS_limits['age_range'] == '0-11m') & (UHL_PEWS_limits['parameter'] == 'HR') & (UHL_PEWS_limits['score'] == 0)]['upper_lim'].values.astype(int)
-#
-# print(upper_lim)
-#
-# upper_lim_row = UHL_PEWS_limits.loc[(UHL_PEWS_limits['age_range'] == '0-11m') & (UHL_PEWS_limits['parameter'] == 'HR') & (UHL_PEWS_limits['score'] == 0)]
-#
-# upper_lim_2 = int(upper_lim_row['upper_lim'].item())
-# print(upper_lim_2)
-# # print(upper_lim_2.type())
-#
-#
-# lower_lim = UHL_PEWS_limits['lower_lim'].loc[(UHL_PEWS_limits['age_range'] == '0-11m') & (UHL_PEWS_limits['parameter'] == 'HR') & (UHL_PEWS_limits['score'] == 0)].astype(int)
-#
-# print(lower_lim)
-#
-# HR_limits = UHL_PEWS_limits.loc[(UHL_PEWS_limits['age_range'] == '0-11m') & (UHL_PEWS_limits['parameter'] == 'HR') & (UHL_PEWS_limits['score'] == 0), ['upper_lim', 'lower_lim']].reset_index(drop=True)
-#
-# print(HR_limits)
-
-
-
-
+print(PEWS_df.loc[(PEWS_df['chart'] != 0)&(PEWS_df['chart'] != 1)&(PEWS_df['chart'] != 2)&(PEWS_df['chart'] != 3)&(PEWS_df['chart'] != 4) ])
 
 
 exit()
-
-# for parameter in NPEWS_limits['parameter'].unique():
-#     # print(parameter)
-#     if parameter in PEWS_df:
-#         print('ok')
-#         PEWS_scored[f'{parameter}_score'] = PEWS_scored[f'{parameter}']
-
-
-""" Bin Data by age """
-
-PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
-
-# classify age according to age bins and add an Age bin column to the PEWS Dataframe
-df['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
-
-
-
-
-
-
-
-PEWS_scored = calculate_score(PEWS_df, model='UHL_PEWS')
-explore_data(PEWS_scored)
-
-for parameter in NPEWS_limits['parameter'].unique():
-    print(parameter)
-
-
-def list_unique_values(df):
-    for column in list(df.columns.values):
-        # if (df[column].dtype == object ):
-        print(df[column].unique().tolist())
-    return df
-
-
-
 

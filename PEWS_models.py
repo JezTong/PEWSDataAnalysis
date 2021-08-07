@@ -1,11 +1,12 @@
 """
-    NAME:          PEWSDataAnalysis: PEWS_models.py
+    NAME:          PEWSDataAnalysis/PEWS_models.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
     VERSION:       0.1
     INSTITUTION:   University College London & University of Manchester
     DESCRIPTION:   Python file for analysing PEWS Data for MSc Dissertation
+    DETAILS:       Data and function used to plot PEWS thresholds or output a table of PEWS parameter limits
     DEPENDENCIES:  This program requires the following modules:
                     Pandas, Numpy, LineCollection from Matplotlib
 
