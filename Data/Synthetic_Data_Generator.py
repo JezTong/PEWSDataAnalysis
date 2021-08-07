@@ -1,5 +1,5 @@
 """
-    NAME:          PEWSDataAnalysis
+    NAME:          PEWSDataAnalysis/Data/Synthetic_Data_Generator.py
     AUTHOR:        Jeremy Tong
     EMAIL:         jeremy.tong.17@ucl.ac.uk
     DATE:          02/01/2021
@@ -21,7 +21,7 @@ random.seed(1)
 
 # parameters = ['concern', 'UHL_concern', 'RR', 'Resp_Dis', 'WoB', 'Sats', 'FiO2', 'HR', 'sBP', 'cap_refill', 'temp', 'AVPU', 'pain']
 
-#TODO Add in age variation to synthetic data variables
+#TODO Add in age variation to synthetic data variables - use quantile regression model to distribute values
 
 # parameter distribution as {'parameter' : [mean, std]} (may need adjusting - base on mean and std from real dataset)
 cont_parameters = {
@@ -58,6 +58,8 @@ data = {}
 # create a list of children of different ages (0 - 18 y)
 data['age_in_days'] = random.choices(list(range(0, 6570)), k = num_children)
 data['age'] = list(map(lambda a: np.round(a/365), data['age_in_days']))
+
+# TODO convert age_in_days to decimal age
 
 # create the continuous data parameters
 for parameter in cont_parameters:
