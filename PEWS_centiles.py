@@ -295,15 +295,16 @@ def polynomial_regression(parameter_df):
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='lightgrey', alpha=0.1)
 
     # plot the regression line overlaid on parameter scatter plot
     x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 50)
     y = model.params[0] + model.params[1] * x + model.params[2] * np.power(x, 2)
 
-    ax.plot(x, y, linestyle='--', color='red', linewidth=1)
+    ax.plot(x, y, linestyle='-', color='limegreen', linewidth=1)
 
     # format the chart and save as .png
+    plt.title(f'Polynomial regression for {par_name}', fontsize=20)
     format_plot(par_name, chart_type)
     return parameter_df
 
@@ -316,7 +317,7 @@ def quantile_regression(parameter_df):
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='lightgrey', alpha=0.1)
 
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age', parameter_df)
@@ -353,11 +354,11 @@ def quantile_regression(parameter_df):
 
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i])
-        ax.plot(x, y, linestyle='dotted', color='red')
+        ax.plot(x, y, linestyle='-', color='royalblue')
 
     y = get_y(ols['a'], ols['b'])
 
-    ax.plot(x, y, color='red', label='OLS')
+    ax.plot(x, y, color='limegreen', label='OLS')
 
     ax.legend()
     plt.title(f'OLS regression for {par_name}', fontsize=20)
@@ -373,7 +374,7 @@ def poly_quantile_regression_1(parameter_df):
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='lightgrey', alpha=0.1)
 
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2)', parameter_df)
@@ -388,7 +389,8 @@ def poly_quantile_regression_1(parameter_df):
     print(result.params)
 
     # quantile lines to display
-    quantiles = [.95, .75, .5, .25, .05]
+    # quantiles = [.95, .75, .5, .25, .05]
+    quantiles = [.99, .9, .75, .5, .25, .1, .01]
 
     def fit_model(q):
         # function to apply LAD model to the data
@@ -424,15 +426,15 @@ def poly_quantile_regression_1(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'])
-    ax.plot(x, y, color='darkorange', linewidth=1, label='OLS')
+    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i])
-        ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y, linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18)
+    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18, y=1.05)
     format_plot(par_name, chart_type)
     return parameter_df
 
@@ -445,7 +447,7 @@ def poly_quantile_regression_2(parameter_df):
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='lightgrey', alpha=0.1)
 
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2) + np.power(age, 3)', parameter_df)
@@ -498,15 +500,15 @@ def poly_quantile_regression_2(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'], ols['d'])
-    ax.plot(x, y, color='darkorange', linewidth=1, label='OLS')
+    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i])
-        ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18)
+    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18, y=1.05)
     format_plot(par_name, chart_type)
     return parameter_df
 
@@ -519,7 +521,7 @@ def poly_quantile_regression_3(parameter_df):
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
+    sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='lightgrey', alpha=0.1)
 
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df)
@@ -574,15 +576,15 @@ def poly_quantile_regression_3(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'], ols['d'], ols['e'])
-    ax.plot(x, y, color='darkorange', linewidth=1, label='OLS')
+    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i], models.e[i])
-        ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18)
+    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18, y=1.05)
     format_plot(par_name, chart_type)
     return parameter_df
 
@@ -613,29 +615,28 @@ def save_as_csv(parameter_df):
 """ Scatter Plots """
 
 # use this list for plotting scatter graphs
-parameter_list = ['HR', 'RR', 'BP', 'sats']
-
-for parameter in parameter_list:
-    # load the data
-    df = load_sharepoint_file(file_scope='full')
-
-    # takes the dataframe and processes in sequence
-    process = (
-        select_parameter(df, parameter)
-            .pipe(split_BP)
-            .pipe(clean_data)
-            .pipe(convert_decimal_age)
-            .pipe(print_data)
-            .pipe(plot_scatter)
-            .pipe(save_as_csv)
-    )
-
-
-exit()
+# parameter_list = ['sats', 'RR', 'HR', 'BP']
+#
+# for parameter in parameter_list:
+#     # load the data
+#     df = load_sharepoint_file(file_scope='full')
+#
+#     # takes the dataframe and processes in sequence
+#     process = (
+#         select_parameter(df, parameter)
+#             .pipe(split_BP)
+#             .pipe(clean_data)
+#             .pipe(convert_decimal_age)
+#             .pipe(print_data)
+#             .pipe(plot_scatter)
+#             .pipe(save_as_csv)
+#     )
+# exit()
 
 """ Quantile Regression PLots """
 # use this for plotting quantile regression
-parameter_list = ['HR', 'RR', 'BP', 'sats']
+# parameter_list = ['HR']
+parameter_list = ['sats', 'RR', 'HR', 'BP']
 
 for parameter in parameter_list:
     # takes the dataframe and processes in sequence
@@ -646,11 +647,13 @@ for parameter in parameter_list:
             .pipe(clean_data)
             .pipe(convert_decimal_age)
             .pipe(print_data)
+            .pipe(polynomial_regression)
             .pipe(poly_quantile_regression_1)
             .pipe(poly_quantile_regression_2)
             .pipe(poly_quantile_regression_3)
             .pipe(save_as_csv)
     )
+exit()
 
 
 
