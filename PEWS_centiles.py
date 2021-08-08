@@ -90,37 +90,77 @@ def explore_data(df):
 def select_parameter(df, parameter):
     # creates a new dataframe with the single parameter from the PEWS dataframe
     # renames the columns as age and parameter name
+    # counts the number of non-null values
     parameter_df = df[['age_in_days', parameter]].values
     parameter_df = pd.DataFrame(parameter_df, columns=['age_in_days', parameter])
+    count_1 = len(parameter_df)
+    count_2 = parameter_df['age_in_days'].count()
+    count_3 = parameter_df[parameter].count()
+    print('\n')
+    print('=' * 80)
     print(f'\n...{parameter} DataFrame created...')
+    print(f'\n...{count_1} rows in total... ')
+    print(f'\n...{count_2} non-null age_in_days values...')
+    print(f'\n...{count_3} non-null {parameter} values...')
     return parameter_df
 
 
 def split_BP(parameter_df):
     # if the parameter is BP, splits the BP data into systolic BP and diastolic BP columns.
     # otherwise does not alter the data
-    # do this before clean_data of values will be lost
+    # do this before clean_data() or values will be lost
+    # counts the number of sBP values available
     if 'BP' in parameter_df:
         BP = parameter_df['BP'].str.split('/', n=1, expand=True)
         parameter_df['sBP'] = BP[0]
         # parameter_df['dBP'] = BP[1]
         parameter_df.drop(columns=['BP'], inplace=True)
+        count_1 = len(parameter_df)
+        count_2 = parameter_df['sBP'].count()
         print(f'\n...Extracting sBP from BP column...')
+        print(f'\n...{count_1} BP rows in total...')
+        print(f'\n...{count_2} sBP values extracted...')
         return parameter_df
     else:
         return parameter_df
 
 
 def clean_data(parameter_df):
-    # takes the parameter dataframe and converts text to NaN values
+    # takes the parameter dataframe and converts text to np.NaN values
     # removes missing values
     # converts data types from objects to integers
     par_name = parameter_df.columns[1]
+    count_1 = parameter_df[par_name].count()
     parameter_df[par_name] = parameter_df[par_name].replace(r'\D+', np.NaN, regex=True)
+    count_2 = parameter_df[par_name].count()
     parameter_df.dropna(inplace=True)
+    count_3 = parameter_df[par_name].count()
+
     for i in list(parameter_df):
         parameter_df[i] = parameter_df[i].astype(int)
+    print('\n')
+    print('=' * 80)
+    print(f'\n...{count_1} non-null {parameter} values...')
+    print(f'\n...{count_1 - count_2} text values in {i} replaced with np.NaN...')
+    print(f'\n...{count_1 - count_3} np.NaN values in {i} removed...')
+    print(f'\n...{count_3} {i} values in final count...')
     print(f'\n...{par_name} Data Cleaning Complete...')
+
+    # for i in list(parameter_df):
+    #
+    #     count_1 = parameter_df[i].count()
+    #     parameter_df[i] = parameter_df[i].replace(r'\D+', np.NaN, regex=True)
+    #     count_2 = parameter_df[i].count()
+    #     print(f'\n...{count_1 - count_2} text values in {i} converted to np.NaN...')
+    #
+    #     count_3 = parameter_df[i].isnull().sum()
+    #     print(f'\n...{count_3} NaN values in {i} deleted...')
+    #     parameter_df[i].dropna(inplace=True)
+    #
+    #     parameter_df[i] = parameter_df[i].astype(int)
+    #
+    # print(f'\n...{col_name} Data Cleaning Complete...')
+
     return parameter_df
 
 
@@ -161,22 +201,56 @@ def color_selector(par_name):
         return 'mediumpurple'
 
 
-def format_plot(par_name, chart_type, ax):
+def full_names(par_name):
+    # function to return the full name of a parameter
+    if par_name == 'HR':
+        return 'Heart Rate (beats per minute)'
+    elif par_name == 'RR':
+        return 'Respiratory Rate (breaths per minute)'
+    elif par_name == 'sats':
+        return 'Oxygen Saturation (%)'
+    elif par_name == 'sBP':
+        return 'Systolic Blood Pressure (mmHg)'
+    elif par_name == 'temp':
+        return 'Temperature (degrees Celcius)'
+    else:
+        return 'error par_name not in list'
+
+
+def format_plot(par_name, chart_type):
     # function to add chart title, axis labels, show plot and save plot as .png
-    plt.xlabel('Age in years')
-    plt.ylabel(f'{par_name}')
-    plt.title(f'{chart_type} For {par_name} in children')
+    label_1 = full_names(par_name)
+    plt.xlabel('Age (years)', fontsize=14)
+    plt.ylabel(f'{label_1}', fontsize=14)
+    # plt.title(f'{chart_type} For {label_1} in children', fontsize=20)
     plt.savefig(f'plots/{par_name}_{chart_type}_plot.png')
     plt.show()
+    plt.clf()
 
+def plot_age_distribution(df):
+    # function to plot a the age distribution
+    # first convert age in days to decimal age
+    # then delete duplicate s numbers and admission spells
+    convert_decimal_age(df)
+    df= df.drop_duplicates(subset=['spell_id'])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(df, x='age', kde=False, bins=216, element='step', color='lightblue')
+    ax.set_xticks(list(range(18)))
+    plt.title('Age distribution', fontsize=20)
+    plt.xlabel('Age (years)', fontsize=14)
+    plt.ylabel('Number of children admitted', fontsize=14)
+    plt.savefig('plots/age_dist_plot.png')
+    plt.show()
+    plt.clf()
 
 def plot_scatter(parameter_df):
     # function to plot a scatter plot of the parameter data
     par_name = parameter_df.columns[1]
-    chart_type = 'Scatter plot'
+    chart_type = 'Scatter_plot'
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color=color_selector(par_name), alpha=0.1)
-    format_plot(par_name, chart_type, ax)
+    ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='deepskyblue', alpha=0.1)
+    ax.set_xticks(list(range(18)))
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -191,6 +265,7 @@ def linear_regression(parameter_df):
     # fit the median values to a simple linear regression model
     model = sm.OLS.from_formula(f'{par_name} ~ age', data=parameter_df).fit()
     print('\n')
+    print('=' * 80)
     print(model.params, '\n', model.summary().extra_txt)
 
     # plot a scatter graph of the data
@@ -201,7 +276,7 @@ def linear_regression(parameter_df):
     ax.plot(parameter_df.age, model.params[0] + model.params[1] * parameter_df.age, color='orange', linewidth=1)
 
     # format the chart and save as .png
-    format_plot(par_name, chart_type, ax)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -212,6 +287,8 @@ def polynomial_regression(parameter_df):
 
     # fit the median values to a simple linear regression model
     model = sm.OLS.from_formula(f'{par_name} ~ age + np.power(age,2)', data=parameter_df).fit()
+    print('\n')
+    print('=' * 80)
     print('\n', model.params, '\n', model.summary().extra_txt)
 
     """ check the modeling assumptions of normality and homoscedasticity of the residuals """
@@ -227,7 +304,7 @@ def polynomial_regression(parameter_df):
     ax.plot(x, y, linestyle='--', color='red', linewidth=1)
 
     # format the chart and save as .png
-    format_plot(par_name, chart_type, ax)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -235,7 +312,7 @@ def quantile_regression(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'OLS regression centiles'
+    chart_type = 'OLS_regression'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -244,6 +321,8 @@ def quantile_regression(parameter_df):
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age', parameter_df)
     result = model.fit(q=0.5)
+    print('\n')
+    print('=' * 80)
     print(result.summary())
 
     quantiles = [0.05, 0.5, 0.95]
@@ -281,7 +360,8 @@ def quantile_regression(parameter_df):
     ax.plot(x, y, color='red', label='OLS')
 
     ax.legend()
-    format_plot(par_name, chart_type, ax)
+    plt.title(f'OLS regression for {par_name}', fontsize=20)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -289,7 +369,7 @@ def poly_quantile_regression_1(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial quantile regression for y = m + x + x^2 '
+    chart_type = 'Polynomial_quantile_regression_1'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -298,6 +378,8 @@ def poly_quantile_regression_1(parameter_df):
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2)', parameter_df)
     result = model.fit(q=.5)
+    print('\n')
+    print('=' * 80)
     print('\n')
     print(chart_type)
     print('\n')
@@ -350,7 +432,8 @@ def poly_quantile_regression_1(parameter_df):
         ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
 
     ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    format_plot(par_name, chart_type, ax)
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -358,7 +441,7 @@ def poly_quantile_regression_2(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial quantile regression for y = m + x + x^2 + x^3 '
+    chart_type = 'Polynomial_quantile_regression_2'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -367,6 +450,8 @@ def poly_quantile_regression_2(parameter_df):
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 2) + np.power(age, 3)', parameter_df)
     result = model.fit(q=.5)
+    print('\n')
+    print('=' * 80)
     print('\n')
     print(chart_type)
     print('\n')
@@ -421,7 +506,8 @@ def poly_quantile_regression_2(parameter_df):
         ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
 
     ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    format_plot(par_name, chart_type, ax)
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -429,7 +515,7 @@ def poly_quantile_regression_3(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial quantile regression for y = m + x + x^0.5 + x^2 + x^3 '
+    chart_type = 'Polynomial_quantile_regression_3'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -438,6 +524,8 @@ def poly_quantile_regression_3(parameter_df):
     # set up Least Absolute Deviation model (quantile regression where q = 0.5) and print results
     model = smf.quantreg(f'{par_name} ~ age + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df)
     result = model.fit(q=.5)
+    print('\n')
+    print('=' * 80)
     print('\n')
     print(chart_type)
     print('\n')
@@ -494,7 +582,8 @@ def poly_quantile_regression_3(parameter_df):
         ax.plot(x, y, linestyle='dotted', color='red', label=f'{models.q[i] * 100:.0f}th centile')
 
     ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    format_plot(par_name, chart_type, ax)
+    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18)
+    format_plot(par_name, chart_type)
     return parameter_df
 
 
@@ -508,16 +597,50 @@ def save_as_csv(parameter_df):
     return parameter_df
 
 
-""" Sequential Function Call """
+""" Sequential Function Calls """
 
-# use this for analysing files on Sharepoint
-# TODO change parameter abbreviations to full descriptions
+
+""" Age Distribution Plot """
+
+# plot an age distribution for the data set
+# df = load_sharepoint_file(file_scope='full')
+# explore_data(df)
+# plot_age_distribution(df)
+# explore_data(df)
+# exit()
+
+
+""" Scatter Plots """
+
+# use this list for plotting scatter graphs
 parameter_list = ['HR', 'RR', 'BP', 'sats']
+
+for parameter in parameter_list:
+    # load the data
+    df = load_sharepoint_file(file_scope='full')
+
+    # takes the dataframe and processes in sequence
+    process = (
+        select_parameter(df, parameter)
+            .pipe(split_BP)
+            .pipe(clean_data)
+            .pipe(convert_decimal_age)
+            .pipe(print_data)
+            .pipe(plot_scatter)
+            .pipe(save_as_csv)
+    )
+
+
+exit()
+
+""" Quantile Regression PLots """
+# use this for plotting quantile regression
+parameter_list = ['HR', 'RR', 'BP', 'sats']
+
 for parameter in parameter_list:
     # takes the dataframe and processes in sequence
     df = load_sharepoint_file(file_scope='full')
     process = (
-
         select_parameter(df, parameter)
             .pipe(split_BP)
             .pipe(clean_data)
@@ -529,7 +652,7 @@ for parameter in parameter_list:
             .pipe(save_as_csv)
     )
 
-# .pipe(plot_scatter)
+
 
 # use this for testing - takes in pre-prepared data set
 # parameter_list = ['HR', 'RR', 'sBP', 'sats']
