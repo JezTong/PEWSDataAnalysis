@@ -78,7 +78,7 @@ def explore_data(df):
 
     # explore and examine the DataFrame
     print(df.describe())
-    # print(df.columns)
+    print(df.columns)
     # print(df.head(10))
     print('\n')
     return(df)
@@ -90,7 +90,7 @@ def explore_data(df):
 def select_parameter(df, parameter):
     # creates a new dataframe with the single parameter from the PEWS dataframe
     # renames the columns as age and parameter name
-    # counts the number of non-null values
+    # counts the number of rows and non-null values
     parameter_df = df[['age_in_days', parameter]].values
     parameter_df = pd.DataFrame(parameter_df, columns=['age_in_days', parameter])
     count_1 = len(parameter_df)
@@ -100,8 +100,8 @@ def select_parameter(df, parameter):
     print('=' * 80)
     print(f'\n...{parameter} DataFrame created...')
     print(f'\n...{count_1} rows in total... ')
-    print(f'\n...{count_2} non-null age_in_days values...')
-    print(f'\n...{count_3} non-null {parameter} values...')
+    print(f'\n...{count_2} age_in_days values found with {count_1 - count_2} missing...')
+    print(f'\n...{count_3} {parameter} values found with {count_1 - count_3} missing...')
     return parameter_df
 
 
@@ -129,6 +129,7 @@ def clean_data(parameter_df):
     # takes the parameter dataframe and converts text to np.NaN values
     # removes missing values
     # converts data types from objects to integers
+    # counts the number of rows and number of missing values
     par_name = parameter_df.columns[1]
     count_1 = parameter_df[par_name].count()
     parameter_df[par_name] = parameter_df[par_name].replace(r'\D+', np.NaN, regex=True)
@@ -145,21 +146,6 @@ def clean_data(parameter_df):
     print(f'\n...{count_1 - count_3} np.NaN values in {i} removed...')
     print(f'\n...{count_3} {i} values in final count...')
     print(f'\n...{par_name} Data Cleaning Complete...')
-
-    # for i in list(parameter_df):
-    #
-    #     count_1 = parameter_df[i].count()
-    #     parameter_df[i] = parameter_df[i].replace(r'\D+', np.NaN, regex=True)
-    #     count_2 = parameter_df[i].count()
-    #     print(f'\n...{count_1 - count_2} text values in {i} converted to np.NaN...')
-    #
-    #     count_3 = parameter_df[i].isnull().sum()
-    #     print(f'\n...{count_3} NaN values in {i} deleted...')
-    #     parameter_df[i].dropna(inplace=True)
-    #
-    #     parameter_df[i] = parameter_df[i].astype(int)
-    #
-    # print(f'\n...{col_name} Data Cleaning Complete...')
 
     return parameter_df
 
@@ -183,6 +169,8 @@ def print_data(parameter_df):
     print('=' * 80)
     print(f'\nSummary Statistics for {par_name}:\n')
     print(parameter_df.describe())
+    print('\n')
+    print('=' * 80)
     return parameter_df
 
 
@@ -599,6 +587,69 @@ def save_as_csv(parameter_df):
     return parameter_df
 
 
+""" Demographics """
+
+def demographics(df):
+    def unique(var):
+        return df[var].nunique()
+
+    def summary(var):
+        return df[var].dropna().describe()
+
+    def missing(var):
+        count_1 = len(df)
+        count_2 = df[var].count()
+        return count_1 - count_2
+
+    def PEWS_breakdown():
+        # TODO This isn't quite right.
+        temp = df[['age', 'EWS']].copy()
+
+        PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
+        PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
+        # classify age according to age bins and add an age bin column to the Dataframe
+        temp['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
+        temp = temp[['PEWS_bins', 'EWS']]
+        breakdown = temp.groupby('PEWS_bins').describe()
+        return breakdown
+
+    # set pandas options to display all columns in a DataFrame
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+
+    print('\n')
+    print('=' * 80)
+    print('\nSummary Demographics:')
+    print(f'\n...Number of children: {unique("s_number_x")}...')
+    print(f'\n...Number of admission episodes: {unique("spell_id")}...')
+    print(f'\n\nSummary Statistics for LoS:')
+    print(f'\n...{len(df)} values available for LoS with {missing("los_hours")} missing\n')
+    print(summary('los_hours'))
+    print(f'\n\nSummary Statistics for UHL PEWS:')
+    print(f'\n...{len(df)} values available for UHL PEWS with {missing("EWS")} missing\n')
+    print(summary('EWS'))
+    print('\nBreakdown of UHL PEWS:')
+    print(PEWS_breakdown())
+    return (df)
+
+# load the data
+df = load_sharepoint_file(file_scope='full')
+# run demographics function
+demographics(df)
+
+# parameter_list = ['sats', 'RR', 'HR', 'BP']
+# for parameter in parameter_list:
+#     # takes the dataframe and processes in sequence
+#     process = (
+#         select_parameter(df, parameter)
+#             .pipe(split_BP)
+#             .pipe(clean_data)
+#             .pipe(convert_decimal_age)
+#             .pipe(print_data)
+#     )
+
+exit()
+
 """ Sequential Function Calls """
 
 
@@ -738,27 +789,14 @@ exit()
 # print('\nHR means\n')
 # print(HR_mean)
 
-# TODO figure out how to plot the standard deviation
+# TODO figure out how to plot the standard deviation on centile chart
 
 # HR_std = df_HR.groupby('bin', as_index=False, sort=True).std()
 # HR_std = pd.DataFrame(HR_std)  # , columns=['age', 'bin', 'HR']
 # print('\nHR standard deviations\n')
 # print(HR_std)
 
-# TODO match up centiles with the age markers better
-
 
 exit()
 
-"""Saving this for later"""
-
-
-# def bin_by_age(parameter_df, bins=54):
-#     # categorises the parameter data by time intervals
-#     # number of bins for specific time intervals: 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
-#     par_name = parameter_df.columns[1]
-#     parameter_df['bin'] = pd.cut(parameter_df.age, bins=bins)
-#     print(f'\n...{par_name} data binned by age intervals...')
-#     print(parameter_df.head(10))
-#     return parameter_df
 
