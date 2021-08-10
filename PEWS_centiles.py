@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt  # pip install matplotlib
 import seaborn as sns  # pip install seaborn
 import statsmodels.api as sm  # pip install statsmodels
 import statsmodels.formula.api as smf
+# from PEWS_scores import calculate_PEWS as cp
+from PEWS_model_1 import PEWS_model as pm
 
 
 """ Load Data Files """
@@ -159,6 +161,18 @@ def convert_decimal_age(parameter_df):
     return parameter_df
 
 
+def bin_age_chart(parameter_df):
+    # bin ages by chart age range
+    bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
+    charts = [0, 1, 2, 3]  # age ranges are 0: 0-11m, 1: 1-4y, 2: 5-11y, 3: >12y
+
+    # add a chart column to and classify age according to PEWS model age ranges
+    print('\n...Charts labelled based on age...')
+    parameter_df['chart'] = pd.cut(parameter_df.age, bins=bins, labels=charts)
+    # print(parameter_df.columns())
+    return parameter_df
+
+
 def print_data(parameter_df):
     # prints the parameter dataframe and its summary statistics
     par_name = parameter_df.columns[1]
@@ -210,10 +224,11 @@ def format_plot(par_name, chart_type):
     label_1 = full_names(par_name)
     plt.xlabel('Age (years)', fontsize=14)
     plt.ylabel(f'{label_1}', fontsize=14)
-    # plt.title(f'{chart_type} For {label_1} in children', fontsize=20)
+    # plt.title(f'{label_1} in children', fontsize=20)
     plt.savefig(f'plots/{par_name}_{chart_type}_plot.png')
     plt.show()
     plt.clf()
+
 
 def plot_age_distribution(df):
     # function to plot a the age distribution
@@ -231,12 +246,66 @@ def plot_age_distribution(df):
     plt.show()
     plt.clf()
 
-def plot_scatter(parameter_df):
+
+def plot_scatter_1(parameter_df):
     # function to plot a scatter plot of the parameter data
     par_name = parameter_df.columns[1]
     chart_type = 'Scatter_plot'
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='deepskyblue', alpha=0.1)
+    ax.set_xticks(list(range(18)))
+    format_plot(par_name, chart_type)
+    return parameter_df
+
+
+""" Composite Scatter plot with PEWS thresholds """
+
+
+def calculate_score(parameter_df):
+    # function to calculate the PEWS score for the parameter
+
+    par_name = parameter_df.columns[1]  # name of the parameter being plotted
+
+    def score(chart, par_name, value):
+        # function for retruning the score based on the value of the parameter
+        # chart = the PEWS chart corresponding to the age range
+        # par = vital sign or observation parameter
+        # value = value of the parameter
+
+        # create a mini-DataFrame of parameter limits based on the age (chart) and parameter to be scored
+        model = pm.loc[
+            (pm['chart'] == chart) & (pm['par'] == par_name), ['lower', 'upper', 'score']]
+        for index, row in model.iterrows():
+            lower = row.lower
+            upper = row.upper + 1
+
+            # return the score if the parameter value is within the range of the limits
+            if value in range(lower, upper):
+                score = row.score
+                return score
+
+    # add a chart column and calculate the PEWS score
+    print(f'\n...working out the PEWS scores for {par_name}, please wait...')
+    parameter_df['PEWS score'] = parameter_df.apply(lambda row: score(row['chart'], par_name, row[par_name]), axis=1)
+    print(f'\n...{par_name} scoring complete...')
+
+    return parameter_df
+
+
+def plot_scatter_2(parameter_df):
+    # function to plot a scatter plot of the parameter data
+
+    par_name = parameter_df.columns[1] # name of the parameter being plotted
+
+    # plot the scatter data
+    print(f'\n...plotting the Scatter chart for {par_name}...')
+
+    chart_type = 'Scatter_PEWS_overlay'
+
+    color_dict = dict({0: 'black',1: 'red'})
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
     ax.set_xticks(list(range(18)))
     format_plot(par_name, chart_type)
     return parameter_df
@@ -589,53 +658,53 @@ def save_as_csv(parameter_df):
 
 """ Demographics """
 
-def demographics(df):
-    def unique(var):
-        return df[var].nunique()
-
-    def summary(var):
-        return df[var].dropna().describe()
-
-    def missing(var):
-        count_1 = len(df)
-        count_2 = df[var].count()
-        return count_1 - count_2
-
-    def PEWS_breakdown():
-        # TODO This isn't quite right.
-        temp = df[['age', 'EWS']].copy()
-
-        PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-        PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
-        # classify age according to age bins and add an age bin column to the Dataframe
-        temp['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
-        temp = temp[['PEWS_bins', 'EWS']]
-        breakdown = temp.groupby('PEWS_bins').describe()
-        return breakdown
-
-    # set pandas options to display all columns in a DataFrame
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-
-    print('\n')
-    print('=' * 80)
-    print('\nSummary Demographics:')
-    print(f'\n...Number of children: {unique("s_number_x")}...')
-    print(f'\n...Number of admission episodes: {unique("spell_id")}...')
-    print(f'\n\nSummary Statistics for LoS:')
-    print(f'\n...{len(df)} values available for LoS with {missing("los_hours")} missing\n')
-    print(summary('los_hours'))
-    print(f'\n\nSummary Statistics for UHL PEWS:')
-    print(f'\n...{len(df)} values available for UHL PEWS with {missing("EWS")} missing\n')
-    print(summary('EWS'))
-    print('\nBreakdown of UHL PEWS:')
-    print(PEWS_breakdown())
-    return (df)
-
-# load the data
-df = load_sharepoint_file(file_scope='full')
-# run demographics function
-demographics(df)
+# def demographics(df):
+#     def unique(var):
+#         return df[var].nunique()
+#
+#     def summary(var):
+#         return df[var].dropna().describe()
+#
+#     def missing(var):
+#         count_1 = len(df)
+#         count_2 = df[var].count()
+#         return count_1 - count_2
+#
+#     def PEWS_breakdown():
+#         # TODO This isn't quite right.
+#         temp = df[['age', 'EWS']].copy()
+#
+#         PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
+#         PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
+#         # classify age according to age bins and add an age bin column to the Dataframe
+#         temp['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
+#         temp = temp[['PEWS_bins', 'EWS']]
+#         breakdown = temp.groupby('PEWS_bins').describe()
+#         return breakdown
+#
+#     # set pandas options to display all columns in a DataFrame
+#     pd.set_option('display.max_columns', None)
+#     pd.set_option('display.width', None)
+#
+#     print('\n')
+#     print('=' * 80)
+#     print('\nSummary Demographics:')
+#     print(f'\n...Number of children: {unique("s_number_x")}...')
+#     print(f'\n...Number of admission episodes: {unique("spell_id")}...')
+#     print(f'\n\nSummary Statistics for LoS:')
+#     print(f'\n...{len(df)} values available for LoS with {missing("los_hours")} missing\n')
+#     print(summary('los_hours'))
+#     print(f'\n\nSummary Statistics for UHL PEWS:')
+#     print(f'\n...{len(df)} values available for UHL PEWS with {missing("EWS")} missing\n')
+#     print(summary('EWS'))
+#     print('\nBreakdown of UHL PEWS:')
+#     print(PEWS_breakdown())
+#     return (df)
+#
+# # load the data
+# df = load_sharepoint_file(file_scope='full')
+# # run demographics function
+# demographics(df)
 
 # parameter_list = ['sats', 'RR', 'HR', 'BP']
 # for parameter in parameter_list:
@@ -648,7 +717,7 @@ demographics(df)
 #             .pipe(print_data)
 #     )
 
-exit()
+# exit()
 
 """ Sequential Function Calls """
 
@@ -667,24 +736,29 @@ exit()
 
 # use this list for plotting scatter graphs
 # parameter_list = ['sats', 'RR', 'HR', 'BP']
-#
-# for parameter in parameter_list:
-#     # load the data
-#     df = load_sharepoint_file(file_scope='full')
-#
-#     # takes the dataframe and processes in sequence
-#     process = (
-#         select_parameter(df, parameter)
-#             .pipe(split_BP)
-#             .pipe(clean_data)
-#             .pipe(convert_decimal_age)
-#             .pipe(print_data)
-#             .pipe(plot_scatter)
-#             .pipe(save_as_csv)
-#     )
-# exit()
+parameter_list = ['sats']
+
+for parameter in parameter_list:
+    # load the data
+    df = load_sharepoint_file(file_scope='half')
+
+    # takes the dataframe and processes in sequence
+    process = (
+        select_parameter(df, parameter)
+            .pipe(split_BP)
+            .pipe(clean_data)
+            .pipe(convert_decimal_age)
+            .pipe(bin_age_chart).pipe(calculate_score)
+            .pipe(print_data)
+            .pipe(plot_scatter_2)
+
+    )
+exit()
+# .pipe(save_as_csv) .pipe(cp).pipe(set_score_colours)
 
 """ Quantile Regression PLots """
+
+
 # use this for plotting quantile regression
 # parameter_list = ['HR']
 parameter_list = ['sats', 'RR', 'HR', 'BP']
@@ -730,7 +804,7 @@ exit()
 #             .pipe(clean_data)
 #             .pipe(convert_decimal_age)
 #             .pipe(print_data)
-#             .pipe(plot_scatter)
+#             .pipe(plot_scatter_1)
 #             .pipe(poly_quantile_regression)
 #             .pipe(save_as_csv)
 #             )

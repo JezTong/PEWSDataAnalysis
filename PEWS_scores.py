@@ -112,15 +112,15 @@ def cat_score(par, value):
         return score
 
 
-def calculate_PEWS(PEWS_df, model):
+def calculate_PEWS(PEWS_df):
     # function to calculate PEWS scores
 
     #  bin ages by chart age ranges
-    PEWS_bins = [0, 1, 5, 12, 18]   # Age bins according to PEWS chart categories
+    bins = [0, 1, 5, 12, 18]   # Age bins according to PEWS chart categories
     charts = [0, 1, 2, 3]           # age ranges are 0: 0-11m, 1: 1-4y, 2: 5-11y, 3: >12y
 
     # add a chart column to the Dataframe and classify age according to PEWS model age ranges
-    PEWS_df['chart'] = pd.cut(PEWS_df.age, PEWS_bins, labels=charts)
+    PEWS_df['chart'] = pd.cut(PEWS_df.age, bins=bins, labels=charts)
 
     # define the parameter list to score
     parameter_list = ['HR', 'RR', 'sBP']
@@ -285,11 +285,11 @@ PEWS_df = load_saved_data('PEWS_data_clean')
 # NPEWS_limits = load_saved_data('NPEWS_limits')
 # UHL_PEWS_limits = load_saved_data('UHL_PEWS_limits')
 
-explore_data(PEWS_df)
-
-explore_data(calculate_PEWS(PEWS_df, 'PEWS'))
-
-print(PEWS_df.loc[(PEWS_df['chart'] != 0)&(PEWS_df['chart'] != 1)&(PEWS_df['chart'] != 2)&(PEWS_df['chart'] != 3)&(PEWS_df['chart'] != 4) ])
+# explore_data(PEWS_df)
+#
+# explore_data(calculate_PEWS(PEWS_df))
+#
+# print(PEWS_df.loc[(PEWS_df['chart'] != 0)&(PEWS_df['chart'] != 1)&(PEWS_df['chart'] != 2)&(PEWS_df['chart'] != 3)&(PEWS_df['chart'] != 4) ])
 
 
 exit()
