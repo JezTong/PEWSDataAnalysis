@@ -18,8 +18,9 @@ import matplotlib.pyplot as plt  # pip install matplotlib
 import seaborn as sns  # pip install seaborn
 import statsmodels.api as sm  # pip install statsmodels
 import statsmodels.formula.api as smf
-# from PEWS_scores import calculate_PEWS as cp
-from PEWS_model_1 import PEWS_model as pm
+
+# Import the PEWS models for calculating scores
+import PEWS_models as pm
 
 
 """ Load Data Files """
@@ -219,13 +220,13 @@ def full_names(par_name):
         return 'error par_name not in list'
 
 
-def format_plot(par_name, chart_type):
+def format_plot(par_name, plot_type):
     # function to add chart title, axis labels, show plot and save plot as .png
     label_1 = full_names(par_name)
     plt.xlabel('Age (years)', fontsize=14)
     plt.ylabel(f'{label_1}', fontsize=14)
     # plt.title(f'{label_1} in children', fontsize=20)
-    plt.savefig(f'plots/{par_name}_{chart_type}_plot.png')
+    plt.savefig(f'plots/{par_name}_{plot_type}_plot.png')
     plt.show()
     plt.clf()
 
@@ -250,20 +251,22 @@ def plot_age_distribution(df):
 def plot_scatter_1(parameter_df):
     # function to plot a scatter plot of the parameter data
     par_name = parameter_df.columns[1]
-    chart_type = 'Scatter_plot'
+    plot_type = 'Scatter_plot'
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='deepskyblue', alpha=0.1)
     ax.set_xticks(list(range(18)))
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
 """ Composite Scatter plot with PEWS thresholds """
 
 
-def calculate_score(parameter_df):
-    # function to calculate the PEWS score for the parameter
+def calculate_UPEWS_score(parameter_df):
+    # function to calculate the UHL PEWS score for the parameter
 
+    model = pm.UPEWS_model # calculate scores for this model
+    model_name = 'UHL PEWS'
     par_name = parameter_df.columns[1]  # name of the parameter being plotted
 
     def score(chart, par_name, value):
@@ -273,9 +276,44 @@ def calculate_score(parameter_df):
         # value = value of the parameter
 
         # create a mini-DataFrame of parameter limits based on the age (chart) and parameter to be scored
-        model = pm.loc[
-            (pm['chart'] == chart) & (pm['par'] == par_name), ['lower', 'upper', 'score']]
-        for index, row in model.iterrows():
+        limits = model.loc[
+            (model['chart'] == chart) & (model['par'] == par_name), ['lower', 'upper', 'score']]
+        for index, row in limits.iterrows():
+            lower = row.lower
+            upper = row.upper + 1
+
+            # return the score if the parameter value is within the range of the limits
+            if value in range(lower, upper):
+                score = row.score
+                return score
+
+    # add a chart column and calculate the PEWS score
+    print(f'\n...working out the PEWS scores for {par_name}, please wait...')
+    parameter_df['PEWS score'] = parameter_df.apply(lambda row: score(row['chart'], par_name, row[par_name]), axis=1)
+    print(f'\n...{par_name} scoring complete...')
+    print(f'\nDisplay {par_name} score stats for {model_name} model:\n')
+    print(parameter_df.groupby('chart')['PEWS score'].value_counts())
+
+    return parameter_df
+
+
+def calculate_NPEWS_score(parameter_df):
+    # function to calculate the National PEWS score for the parameter (duplicate of UPEWS scoring function)
+
+    model = pm.NPEWS_model # calculate scores for this model
+    model_name = 'National PEWS'
+    par_name = parameter_df.columns[1]  # name of the parameter being plotted
+
+    def score(chart, par_name, value):
+        # function for retruning the score based on the value of the parameter
+        # chart = the PEWS chart corresponding to the age range
+        # par = vital sign or observation parameter
+        # value = value of the parameter
+
+        # create a mini-DataFrame of parameter limits based on the age (chart) and parameter to be scored
+        limits = model.loc[
+            (model['chart'] == chart) & (model['par'] == par_name), ['lower', 'upper', 'score']]
+        for index, row in limits.iterrows():
             lower = row.lower
             upper = row.upper + 1
 
@@ -289,6 +327,10 @@ def calculate_score(parameter_df):
     parameter_df['PEWS score'] = parameter_df.apply(lambda row: score(row['chart'], par_name, row[par_name]), axis=1)
     print(f'\n...{par_name} scoring complete...')
 
+    # display the counts for each score for each PEWS chart (age bin)
+    print(f'\nDisplay {par_name} score stats for {model_name} model:\n')
+    print(parameter_df.groupby('chart')['PEWS score'].value_counts())
+
     return parameter_df
 
 
@@ -300,16 +342,41 @@ def plot_scatter_2(parameter_df):
     # plot the scatter data
     print(f'\n...plotting the Scatter chart for {par_name}...')
 
-    chart_type = 'Scatter_PEWS_overlay'
+    plot_type = 'Scatter_UPEWS_overlay'
 
-    color_dict = dict({0: 'black',1: 'red'})
+    color_dict = dict({0: 'black', 1: 'red'})
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
     ax.set_xticks(list(range(18)))
-    format_plot(par_name, chart_type)
+
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    ax.legend(title='PEWS Score', frameon=False, fontsize=10)
+
+    format_plot(par_name, plot_type)
     return parameter_df
 
+def plot_scatter_3(parameter_df):
+    # function to plot a scatter plot of the parameter data
+
+    par_name = parameter_df.columns[1] # name of the parameter being plotted
+
+    # plot the scatter data
+    print(f'\n...plotting the Scatter chart for {par_name}...')
+
+    plot_type = 'Scatter_NPEWS_overlay'
+
+    color_dict = dict({0: 'black', 1: 'gold', 2: 'darkorange', 4: 'red'})
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
+    ax.set_xticks(list(range(18)))
+
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    ax.legend(title='PEWS Score', frameon=False, fontsize=10)
+
+    format_plot(par_name, plot_type)
+    return parameter_df
 
 """ Data plots with regression analysis """
 
@@ -317,7 +384,7 @@ def plot_scatter_2(parameter_df):
 def linear_regression(parameter_df):
     # function to plot a linear regression of the parameter
     par_name = parameter_df.columns[1]
-    chart_type = 'regression'
+    plot_type = 'regression'
 
     # fit the median values to a simple linear regression model
     model = sm.OLS.from_formula(f'{par_name} ~ age', data=parameter_df).fit()
@@ -333,14 +400,14 @@ def linear_regression(parameter_df):
     ax.plot(parameter_df.age, model.params[0] + model.params[1] * parameter_df.age, color='orange', linewidth=1)
 
     # format the chart and save as .png
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
 def polynomial_regression(parameter_df):
     # function to plot a linear regression of the parameter
     par_name = parameter_df.columns[1]
-    chart_type = 'polynomial'
+    plot_type = 'polynomial'
 
     # fit the median values to a simple linear regression model
     model = sm.OLS.from_formula(f'{par_name} ~ age + np.power(age,2)', data=parameter_df).fit()
@@ -362,7 +429,7 @@ def polynomial_regression(parameter_df):
 
     # format the chart and save as .png
     plt.title(f'Polynomial regression for {par_name}', fontsize=20)
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
@@ -370,7 +437,7 @@ def quantile_regression(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'OLS_regression'
+    plot_type = 'OLS_regression'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -419,7 +486,7 @@ def quantile_regression(parameter_df):
 
     ax.legend()
     plt.title(f'OLS regression for {par_name}', fontsize=20)
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
@@ -427,7 +494,7 @@ def poly_quantile_regression_1(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial_quantile_regression_1'
+    plot_type = 'Polynomial_quantile_regression_1'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -439,7 +506,7 @@ def poly_quantile_regression_1(parameter_df):
     print('\n')
     print('=' * 80)
     print('\n')
-    print(chart_type)
+    print(plot_type)
     print('\n')
     print(result.summary())
     print('\n')
@@ -490,9 +557,11 @@ def poly_quantile_regression_1(parameter_df):
         y = get_y(models.a[i], models.b[i], models.c[i])
         ax.plot(x, y, linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    ax.legend(frameon=False, fontsize=10)
+
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18, y=1.05)
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
@@ -500,7 +569,7 @@ def poly_quantile_regression_2(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial_quantile_regression_2'
+    plot_type = 'Polynomial_quantile_regression_2'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -512,7 +581,7 @@ def poly_quantile_regression_2(parameter_df):
     print('\n')
     print('=' * 80)
     print('\n')
-    print(chart_type)
+    print(plot_type)
     print('\n')
     print(result.summary())
     print('\n')
@@ -564,9 +633,11 @@ def poly_quantile_regression_2(parameter_df):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i])
         ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    ax.legend(frameon=False, fontsize=10)
+
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18, y=1.05)
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
@@ -574,7 +645,7 @@ def poly_quantile_regression_3(parameter_df):
     # function to plot centile lines using quantile regression
 
     par_name = parameter_df.columns[1]
-    chart_type = 'Polynomial_quantile_regression_3'
+    plot_type = 'Polynomial_quantile_regression_3'
 
     # plot a scatter graph of the data
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -586,7 +657,7 @@ def poly_quantile_regression_3(parameter_df):
     print('\n')
     print('=' * 80)
     print('\n')
-    print(chart_type)
+    print(plot_type)
     print('\n')
     print(result.summary())
     print('\n')
@@ -640,9 +711,11 @@ def poly_quantile_regression_3(parameter_df):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i], models.e[i])
         ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
 
-    ax.legend(loc='lower right', prop={"size":10}) if par_name == 'sats' else ax.legend(loc='upper right', prop={"size":10})
+    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
+    ax.legend(frameon=False, fontsize=10)
+
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18, y=1.05)
-    format_plot(par_name, chart_type)
+    format_plot(par_name, plot_type)
     return parameter_df
 
 
@@ -657,6 +730,7 @@ def save_as_csv(parameter_df):
 
 
 """ Demographics """
+#  Use this section to print out demographics and data cleaning summaries
 
 # def demographics(df):
 #     def unique(var):
@@ -670,17 +744,6 @@ def save_as_csv(parameter_df):
 #         count_2 = df[var].count()
 #         return count_1 - count_2
 #
-#     def PEWS_breakdown():
-#         # TODO This isn't quite right.
-#         temp = df[['age', 'EWS']].copy()
-#
-#         PEWS_bins = [0, 1, 5, 12, 18]  # Age bins according to PEWS chart categories
-#         PEWS_bin_labels = ['0-11m', '1-4y', '5-11y', '>12y']  # Age bin category labels
-#         # classify age according to age bins and add an age bin column to the Dataframe
-#         temp['PEWS_bins'] = pd.cut(df.age, PEWS_bins, labels=PEWS_bin_labels)
-#         temp = temp[['PEWS_bins', 'EWS']]
-#         breakdown = temp.groupby('PEWS_bins').describe()
-#         return breakdown
 #
 #     # set pandas options to display all columns in a DataFrame
 #     pd.set_option('display.max_columns', None)
@@ -733,8 +796,8 @@ def save_as_csv(parameter_df):
 
 
 """ Scatter Plots """
+# Use this section for plotting scatter graphs
 
-# use this list for plotting scatter graphs
 # parameter_list = ['sats', 'RR', 'HR', 'BP']
 parameter_list = ['sats']
 
@@ -748,19 +811,24 @@ for parameter in parameter_list:
             .pipe(split_BP)
             .pipe(clean_data)
             .pipe(convert_decimal_age)
-            .pipe(bin_age_chart).pipe(calculate_score)
+            .pipe(bin_age_chart)
+            .pipe(calculate_NPEWS_score)
             .pipe(print_data)
-            .pipe(plot_scatter_2)
+            .pipe(plot_scatter_3)
 
     )
+
+            # .pipe(bin_age_chart)
+            # .pipe(calculate_UPEWS_score)
+            # .pipe(print_data)
+            # .pipe(plot_scatter_2)
+
 exit()
-# .pipe(save_as_csv) .pipe(cp).pipe(set_score_colours)
+
 
 """ Quantile Regression PLots """
-
-
 # use this for plotting quantile regression
-# parameter_list = ['HR']
+
 parameter_list = ['sats', 'RR', 'HR', 'BP']
 
 for parameter in parameter_list:
@@ -781,6 +849,7 @@ for parameter in parameter_list:
 exit()
 
 
+""" Code Testing """
 
 # use this for testing - takes in pre-prepared data set
 # parameter_list = ['HR', 'RR', 'sBP', 'sats']
