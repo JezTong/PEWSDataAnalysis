@@ -288,7 +288,7 @@ def calculate_UPEWS_score(parameter_df):
                 return score
 
     # add a chart column and calculate the PEWS score
-    print(f'\n...working out the PEWS scores for {par_name}, please wait...')
+    print(f'\n...working out the UHL PEWS scores for {par_name}, please wait...')
     parameter_df['PEWS score'] = parameter_df.apply(lambda row: score(row['chart'], par_name, row[par_name]), axis=1)
     print(f'\n...{par_name} scoring complete...')
     print(f'\nDisplay {par_name} score stats for {model_name} model:\n')
@@ -323,7 +323,7 @@ def calculate_NPEWS_score(parameter_df):
                 return score
 
     # add a chart column and calculate the PEWS score
-    print(f'\n...working out the PEWS scores for {par_name}, please wait...')
+    print(f'\n...working out the National PEWS scores for {par_name}, please wait...')
     parameter_df['PEWS score'] = parameter_df.apply(lambda row: score(row['chart'], par_name, row[par_name]), axis=1)
     print(f'\n...{par_name} scoring complete...')
 
@@ -350,8 +350,8 @@ def plot_scatter_2(parameter_df):
     ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
     ax.set_xticks(list(range(18)))
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    ax.legend(title='PEWS Score', frameon=False, fontsize=10)
+    ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='lower right') if par_name == 'sats' \
+        else ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='upper right')
 
     format_plot(par_name, plot_type)
     return parameter_df
@@ -372,8 +372,8 @@ def plot_scatter_3(parameter_df):
     ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
     ax.set_xticks(list(range(18)))
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    ax.legend(title='PEWS Score', frameon=False, fontsize=10)
+    ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='lower right') if par_name == 'sats' \
+        else ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='upper right')
 
     format_plot(par_name, plot_type)
     return parameter_df
@@ -798,14 +798,15 @@ def save_as_csv(parameter_df):
 """ Scatter Plots """
 # Use this section for plotting scatter graphs
 
-# parameter_list = ['sats', 'RR', 'HR', 'BP']
-parameter_list = ['sats']
+# load the data
+df = load_sharepoint_file(file_scope='full')
+
+parameter_list = ['sats', 'RR', 'HR', 'BP']
+# parameter_list = ['sats']
 
 for parameter in parameter_list:
-    # load the data
-    df = load_sharepoint_file(file_scope='half')
 
-    # takes the dataframe and processes in sequence
+    # takes the dataframe and processes in sequence for National PEWS
     process = (
         select_parameter(df, parameter)
             .pipe(split_BP)
@@ -815,13 +816,20 @@ for parameter in parameter_list:
             .pipe(calculate_NPEWS_score)
             .pipe(print_data)
             .pipe(plot_scatter_3)
-
     )
 
-            # .pipe(bin_age_chart)
-            # .pipe(calculate_UPEWS_score)
-            # .pipe(print_data)
-            # .pipe(plot_scatter_2)
+    # takes the dataframe and processes in sequence for UHL PEWS
+    process = (
+        select_parameter(df, parameter)
+            .pipe(split_BP)
+            .pipe(clean_data)
+            .pipe(convert_decimal_age)
+            .pipe(bin_age_chart)
+            .pipe(calculate_UPEWS_score)
+            .pipe(print_data)
+            .pipe(plot_scatter_2)
+    )
+
 
 exit()
 
