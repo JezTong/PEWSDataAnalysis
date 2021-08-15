@@ -239,7 +239,7 @@ def plot_age_distribution(df):
     df= df.drop_duplicates(subset=['spell_id'])
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(df, x='age', kde=False, bins=216, element='step', color='lightblue')
-    ax.set_xticks(list(range(18)))
+    ax.set_xticks(list(range(19)))
     plt.title('Age distribution', fontsize=20)
     plt.xlabel('Age (years)', fontsize=14)
     plt.ylabel('Number of children admitted', fontsize=14)
@@ -254,7 +254,7 @@ def plot_scatter_1(parameter_df):
     plot_type = 'Scatter_plot'
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(x='age', y=par_name, data=parameter_df, marker='.', color='deepskyblue', alpha=0.1)
-    ax.set_xticks(list(range(18)))
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -340,7 +340,7 @@ def plot_scatter_2(parameter_df):
     par_name = parameter_df.columns[1] # name of the parameter being plotted
 
     # plot the scatter data
-    print(f'\n...plotting the Scatter chart for {par_name}...')
+    print(f'\n...plotting the UHL PEWS Scatter array for {par_name}...')
 
     plot_type = 'Scatter_UPEWS_overlay'
 
@@ -348,7 +348,7 @@ def plot_scatter_2(parameter_df):
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
-    ax.set_xticks(list(range(18)))
+    ax.set_xticks(list(range(19)))
 
     ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='lower right') if par_name == 'sats' \
         else ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='upper right')
@@ -362,7 +362,7 @@ def plot_scatter_3(parameter_df):
     par_name = parameter_df.columns[1] # name of the parameter being plotted
 
     # plot the scatter data
-    print(f'\n...plotting the Scatter chart for {par_name}...')
+    print(f'\n...plotting the NPEWS Scatter array for {par_name}...')
 
     plot_type = 'Scatter_NPEWS_overlay'
 
@@ -370,7 +370,7 @@ def plot_scatter_3(parameter_df):
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax = sns.scatterplot(data=parameter_df, x='age', y=par_name, marker='.', hue='PEWS score', palette=color_dict, alpha=0.1)
-    ax.set_xticks(list(range(18)))
+    ax.set_xticks(list(range(19)))
 
     ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='lower right') if par_name == 'sats' \
         else ax.legend(title='PEWS Score', frameon=False, fontsize=10, loc='upper right')
@@ -400,6 +400,7 @@ def linear_regression(parameter_df):
     ax.plot(parameter_df.age, model.params[0] + model.params[1] * parameter_df.age, color='orange', linewidth=1)
 
     # format the chart and save as .png
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -429,6 +430,7 @@ def polynomial_regression(parameter_df):
 
     # format the chart and save as .png
     plt.title(f'Polynomial regression for {par_name}', fontsize=20)
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -486,6 +488,7 @@ def quantile_regression(parameter_df):
 
     ax.legend()
     plt.title(f'OLS regression for {par_name}', fontsize=20)
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -555,12 +558,19 @@ def poly_quantile_regression_1(parameter_df):
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i])
-        ax.plot(x, y, linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y, linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    ax.legend(frameon=False, fontsize=10)
+    # lable the quantile lines to the right of each line
+    for line, name in zip(ax.lines[1:], quantiles):
+        y = line.get_ydata()[-1]
+        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
+                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
+        else ax.legend(frameon=False, fontsize=9, loc='upper right')
 
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18, y=1.05)
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -588,7 +598,8 @@ def poly_quantile_regression_2(parameter_df):
     print(result.params)
 
     # quantile lines to display
-    quantiles = [.95, .75, .5, .25, .05]
+    # quantiles = [.95, .75, .5, .25, .05]
+    quantiles = [.99, .9, .75, .5, .25, .1, .01]
 
     def fit_model(q):
         # function to apply LAD model to the data
@@ -631,12 +642,19 @@ def poly_quantile_regression_2(parameter_df):
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i])
-        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    ax.legend(frameon=False, fontsize=10)
+    # lable the quantile lines to the right of each line
+    for line, name in zip(ax.lines[1:], quantiles):
+        y = line.get_ydata()[-1]
+        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
+                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
+        else ax.legend(frameon=False, fontsize=9, loc='upper right')
 
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18, y=1.05)
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -664,7 +682,8 @@ def poly_quantile_regression_3(parameter_df):
     print(result.params)
 
     # quantile lines to display
-    quantiles = [.95, .75, .5, .25, .05]
+    # quantiles = [.95, .75, .5, .25, .05]
+    quantiles = [.99, .9, .75, .5, .25, .1, .01]
 
     def fit_model(q):
         # function to apply LAD model to the data
@@ -678,7 +697,7 @@ def poly_quantile_regression_3(parameter_df):
                    result.params['np.power(age, 3)'],
                ] + result.conf_int().loc['age'].tolist()
 
-    # apply ALD model for each quantile in list & convert to dataframe for plotting
+    # apply LAD model for each quantile in list & convert to dataframe for plotting
     models = [fit_model(x) for x in quantiles]
     models = pd.DataFrame(models, columns=['q', 'a', 'b', 'c', 'd', 'e', 'lb', 'ub'])
 
@@ -698,7 +717,7 @@ def poly_quantile_regression_3(parameter_df):
     print(ols)
 
     # prepare a list of values for the prediction model
-    x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 50)
+    x = np.linspace(parameter_df.age.min(), parameter_df.age.max(), 216)
     # prediction model formula
     get_y = lambda a, b, c, d, e: a + b * x + c * np.power(x, 0.5) + d * np.power(x, 2) + e * np.power(x, 3)
 
@@ -709,12 +728,19 @@ def poly_quantile_regression_3(parameter_df):
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i], models.e[i])
-        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f}th centile')
+        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
 
-    ax.legend(loc='lower right') if par_name == 'sats' else ax.legend(loc='upper right')
-    ax.legend(frameon=False, fontsize=10)
+    # lable the quantile lines to the right of each line
+    for line, name in zip(ax.lines[1:], quantiles):
+        y = line.get_ydata()[-1]
+        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
+                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
+        else ax.legend(frameon=False, fontsize=9, loc='upper right')
 
     plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18, y=1.05)
+    ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
 
@@ -800,9 +826,7 @@ def save_as_csv(parameter_df):
 
 # load the data
 df = load_sharepoint_file(file_scope='full')
-
 parameter_list = ['sats', 'RR', 'HR', 'BP']
-# parameter_list = ['sats']
 
 for parameter in parameter_list:
 
@@ -830,18 +854,19 @@ for parameter in parameter_list:
             .pipe(plot_scatter_2)
     )
 
-
 exit()
 
 
 """ Quantile Regression PLots """
 # use this for plotting quantile regression
 
+# load the data
+df = load_sharepoint_file(file_scope='full')
 parameter_list = ['sats', 'RR', 'HR', 'BP']
 
 for parameter in parameter_list:
     # takes the dataframe and processes in sequence
-    df = load_sharepoint_file(file_scope='full')
+
     process = (
         select_parameter(df, parameter)
             .pipe(split_BP)
@@ -856,7 +881,7 @@ for parameter in parameter_list:
     )
 exit()
 
-
+#
 """ Code Testing """
 
 # use this for testing - takes in pre-prepared data set
@@ -919,33 +944,7 @@ exit()
 # plt.title('Model : Residuals vs Fitted Values', fontsize=12, weight='bold')
 # plt.show()
 
-
-# bin the HR data by age
-# bins = 18  # 1 month = 216, 2 months = 108, 4 months = 54, 6 months = 36
-# [np.arange(0, 6574, 28)]  # Age bins according to PEWS chart categories
-# bin_labels = [np.arange(0, len(bins))]  # Age bin category labels
-
-# print('\nbins\n')
-# print(bins)
-# print(bin_labels)
-
-# classify age according to age bins and add an Age bin column to the PEWS Dataframe
-# df_HR['bin'] = pd.cut(df_HR.age, bins=bins)
-# print('\nHR Dataframe 2\n')
-# print(df_HR)
-
-# calculate the mean values for each age bin
-# HR_mean = df_HR.groupby('bin', as_index=False, sort=True).mean()
-# HR_mean = pd.DataFrame(HR_mean, columns=['age', 'bin', 'HR'])
-# print('\nHR means\n')
-# print(HR_mean)
-
 # TODO figure out how to plot the standard deviation on centile chart
-
-# HR_std = df_HR.groupby('bin', as_index=False, sort=True).std()
-# HR_std = pd.DataFrame(HR_std)  # , columns=['age', 'bin', 'HR']
-# print('\nHR standard deviations\n')
-# print(HR_std)
 
 
 exit()
