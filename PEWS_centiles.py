@@ -759,6 +759,7 @@ def save_as_csv(parameter_df):
 #  Use this section to print out demographics and data cleaning summaries
 
 # def demographics(df):
+#
 #     def unique(var):
 #         return df[var].nunique()
 #
@@ -775,11 +776,14 @@ def save_as_csv(parameter_df):
 #     pd.set_option('display.max_columns', None)
 #     pd.set_option('display.width', None)
 #
+#     admission = df['spell_id'].str.split('_', n=1, expand=True)
+#     df['admission'] = admission[0]
+#
 #     print('\n')
 #     print('=' * 80)
 #     print('\nSummary Demographics:')
 #     print(f'\n...Number of children: {unique("s_number_x")}...')
-#     print(f'\n...Number of admission episodes: {unique("spell_id")}...')
+#     print(f'\n...Number of admission episodes: {unique("admission")}...')
 #     print(f'\n\nSummary Statistics for LoS:')
 #     print(f'\n...{len(df)} values available for LoS with {missing("los_hours")} missing\n')
 #     print(summary('los_hours'))
@@ -787,14 +791,13 @@ def save_as_csv(parameter_df):
 #     print(f'\n...{len(df)} values available for UHL PEWS with {missing("EWS")} missing\n')
 #     print(summary('EWS'))
 #     print('\nBreakdown of UHL PEWS:')
-#     print(PEWS_breakdown())
 #     return (df)
 #
 # # load the data
 # df = load_sharepoint_file(file_scope='full')
 # # run demographics function
 # demographics(df)
-
+#
 # parameter_list = ['sats', 'RR', 'HR', 'BP']
 # for parameter in parameter_list:
 #     # takes the dataframe and processes in sequence
@@ -805,7 +808,7 @@ def save_as_csv(parameter_df):
 #             .pipe(convert_decimal_age)
 #             .pipe(print_data)
 #     )
-
+#
 # exit()
 
 """ Sequential Function Calls """
