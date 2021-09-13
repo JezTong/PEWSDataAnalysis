@@ -356,6 +356,7 @@ def plot_scatter_2(parameter_df):
     format_plot(par_name, plot_type)
     return parameter_df
 
+
 def plot_scatter_3(parameter_df):
     # function to plot a scatter plot of the parameter data
 
@@ -377,6 +378,7 @@ def plot_scatter_3(parameter_df):
 
     format_plot(par_name, plot_type)
     return parameter_df
+
 
 """ Data plots with regression analysis """
 
@@ -429,7 +431,7 @@ def polynomial_regression(parameter_df):
     ax.plot(x, y, linestyle='-', color='limegreen', linewidth=1)
 
     # format the chart and save as .png
-    plt.title(f'Polynomial regression for {par_name}', fontsize=20)
+    # plt.title(f'Polynomial regression for {par_name}', fontsize=20)
     ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
@@ -553,23 +555,37 @@ def poly_quantile_regression_1(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'])
-    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
+    # ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i])
-        ax.plot(x, y, linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
+        ax.plot(
+            x, y,
+            linestyle='-',
+            linewidth=1,
+            color='limegreen' if models.q[i] == 0.5 else 'deepskyblue',
+            label=f'{models.q[i] * 100:.0f}st   percentile' if models.q[
+                                                                   i] == 0.01 else f'{models.q[i] * 100:.0f}th percentile'
+        )
 
     # lable the quantile lines to the right of each line
-    for line, name in zip(ax.lines[1:], quantiles):
+    for line, name in zip(ax.lines, quantiles):
         y = line.get_ydata()[-1]
-        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
-                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
-    # set the legend
-    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
-        else ax.legend(frameon=False, fontsize=9, loc='upper right')
+        ax.annotate(
+            f'{name * 100:.0f}',
+            xy=(1, y),
+            xytext=(-30, 0),
+            xycoords=ax.get_yaxis_transform(),
+            textcoords="offset points",
+            color='limegreen' if name == 0.5 else 'deepskyblue',
+            size=8, va="center",
+        )
 
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18, y=1.05)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='upper right')
+
+    # plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2)', fontsize=18, y=1.05)
     ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
@@ -637,23 +653,36 @@ def poly_quantile_regression_2(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'], ols['d'])
-    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
+    # ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i])
-        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
+        ax.plot(
+            x, y,
+            linestyle='-',
+            linewidth=1,
+            color='limegreen' if models.q[i] == 0.5 else 'deepskyblue',
+            label=f'{models.q[i]*100:.0f}st   percentile' if models.q[i] == 0.01 else f'{models.q[i]*100:.0f}th percentile'
+        )
 
     # lable the quantile lines to the right of each line
-    for line, name in zip(ax.lines[1:], quantiles):
+    for line, name in zip(ax.lines, quantiles):
         y = line.get_ydata()[-1]
-        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
-                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
-    # set the legend
-    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
-        else ax.legend(frameon=False, fontsize=9, loc='upper right')
+        ax.annotate(
+            f'{name*100:.0f}',
+            xy=(1, y),
+            xytext=(-30, 0),
+            xycoords=ax.get_yaxis_transform(),
+            textcoords="offset points",
+            color='limegreen' if name == 0.5 else 'deepskyblue',
+            size=8, va="center",
+        )
 
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18, y=1.05)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='upper right')
+
+    # plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^2 + x^3)', fontsize=18, y=1.05)
     ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
@@ -682,7 +711,6 @@ def poly_quantile_regression_3(parameter_df):
     print(result.params)
 
     # quantile lines to display
-    # quantiles = [.95, .75, .5, .25, .05]
     quantiles = [.99, .9, .75, .5, .25, .1, .01]
 
     def fit_model(q):
@@ -701,7 +729,7 @@ def poly_quantile_regression_3(parameter_df):
     models = [fit_model(x) for x in quantiles]
     models = pd.DataFrame(models, columns=['q', 'a', 'b', 'c', 'd', 'e', 'lb', 'ub'])
 
-    ols = smf.ols(f'{par_name} ~ age + + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df).fit()
+    ols = smf.ols(f'{par_name} ~ age + np.power(age, 0.5) + np.power(age, 2) + np.power(age, 3)', parameter_df).fit()
     ols_ci = ols.conf_int().loc['age'].tolist()
     ols = dict(a=ols.params['Intercept'],
                b=ols.params['age'],
@@ -723,23 +751,37 @@ def poly_quantile_regression_3(parameter_df):
 
     # plot the OLS fit line
     y = get_y(ols['a'], ols['b'], ols['c'], ols['d'], ols['e'])
-    ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
+    # ax.plot(x, y, linestyle='dotted', color='limegreen', label='OLS')
 
     # plot each of the quantiles in the models dataframe
     for i in range(models.shape[0]):
         y = get_y(models.a[i], models.b[i], models.c[i], models.d[i], models.e[i])
-        ax.plot(x, y,  linestyle='-', linewidth=1, color='deepskyblue', label=f'{models.q[i] * 100:.0f} cent.')
+        ax.plot(
+            x, y,
+            linestyle='-',
+            linewidth=1,
+            color='limegreen' if models.q[i] == 0.5 else 'deepskyblue',
+            label=f'{models.q[i] * 100:.0f}st   percentile' if models.q[
+                                                                   i] == 0.01 else f'{models.q[i] * 100:.0f}th percentile'
+        )
 
     # lable the quantile lines to the right of each line
-    for line, name in zip(ax.lines[1:], quantiles):
+    for line, name in zip(ax.lines, quantiles):
         y = line.get_ydata()[-1]
-        ax.annotate(f'{name * 100:.0f}', xy=(1, y), xytext=(-30, 0), xycoords=ax.get_yaxis_transform(),
-                    textcoords="offset points", color='deepskyblue', size=8, va="center",)
-    # set the legend
-    ax.legend(frameon=False, fontsize=9, loc='lower right') if par_name == 'sats' \
-        else ax.legend(frameon=False, fontsize=9, loc='upper right')
+        ax.annotate(
+            f'{name * 100:.0f}',
+            xy=(1, y),
+            xytext=(-30, 0),
+            xycoords=ax.get_yaxis_transform(),
+            textcoords="offset points",
+            color='limegreen' if name == 0.5 else 'deepskyblue',
+            size=8, va="center",
+        )
 
-    plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18, y=1.05)
+    # set the legend
+    ax.legend(frameon=False, fontsize=9, loc='upper right')
+
+    # plt.title(f'Polynomial quantile regression for {par_name} (y = m + x + x^0.5 + x^2 + x^3)', fontsize=18, y=1.05)
     ax.set_xticks(list(range(19)))
     format_plot(par_name, plot_type)
     return parameter_df
@@ -865,7 +907,7 @@ exit()
 
 # load the data
 df = load_sharepoint_file(file_scope='full')
-parameter_list = ['sats', 'RR', 'HR', 'BP']
+parameter_list = ['RR', 'HR', 'BP']
 
 for parameter in parameter_list:
     # takes the dataframe and processes in sequence
@@ -876,7 +918,6 @@ for parameter in parameter_list:
             .pipe(clean_data)
             .pipe(convert_decimal_age)
             .pipe(print_data)
-            .pipe(polynomial_regression)
             .pipe(poly_quantile_regression_1)
             .pipe(poly_quantile_regression_2)
             .pipe(poly_quantile_regression_3)
@@ -884,6 +925,7 @@ for parameter in parameter_list:
     )
 exit()
 
+# #
 #
 """ Code Testing """
 
